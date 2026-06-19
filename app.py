@@ -6,7 +6,9 @@ soup = BeautifulSoup(page, "html.parser")
 concursos = soup.find_all("div", class_="da")
 
 if concursos:
-    for concurso in concursos:
-        print(concurso.get_text())
+    numeroConcurso = concursos[0].text
+    for i in range(len(concursos)):
+        print(concursos[i].get_text(strip=True))
+        print("-------------------------------------------------------------------------")
 else:
     print("Nenhum concurso encontrado")

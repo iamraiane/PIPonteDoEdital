@@ -1,42 +1,59 @@
-from urllib.request import urlopen
-from conn import conectar
-from bs4 import BeautifulSoup
+import re
 from datetime import datetime
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+from conn import conectar
 
 
-def scrape_norte():
-    page = urlopen("https://www.pciconcursos.com.br/concursos/norte/")
-    soup = BeautifulSoup(page, "html.parser")
+def extrair_concursos_regiao_norte():
+    url_regiao_norte = "https://www.pciconcursos.com.br/concursos/norte/"
+    pagina_html = urlopen(url_regiao_norte)
+    conteudo_soup = BeautifulSoup(pagina_html, "html.parser")
 
-    conn, cursor = conectar()
+    conexao_banco, cursor_banco = conectar()
 
-    titles = soup.find_all("div", class_="ua")
-    descriptions = soup.find_all("div", class_="cd")
-    links = soup.find_all("div", class_="na")
-    publication_date = soup.find_all("div", class_="ce")
-    
-    
-    umPorUmTitle = [t.get_text(strip=True) for t in titles]
-    umPorUmDescription = [d.get_text(strip=True) for d in descriptions]
-    umPorUmLink = [l.get_text(strip=True) for l in links]
-    umPorUmPublicationDate = [pd.get_text(strip=True) for pd in publication_date]
-    print("Total title encontrados: ", len(umPorUmTitle))
-    print("Total descrições encontradas: ", len(umPorUmDescription))
-    print("Total links encontrados: ", len(umPorUmLink))
-    print("Total datas postadas encontradas: ", len(umPorUmPublicationDate))
-    
-    for title, description, link, publication_date in zip(umPorUmTitle, umPorUmDescription, umPorUmLink, umPorUmPublicationDate):
-        # print("Título: ", title)
-        # print("Descrição: ", description)
-        # print("Link: ", link)
-        # print("Data Postada: ", publication_date)
-        data_convertida = datetime.strptime(publication_date, "%d/%m/%Y").strftime("%Y-%m-%d")
-        cursor.execute(
-            "INSERT INTO notices(title, description, link, publication_date) VALUES (%s, %s, %s, %s)",
-            (title, description, link, data_convertida)
-        )
-    
-    conn.commit()
-    conn.close()
-    
-    print("Dados salvos com sucesso!")
+    elementos_titulo = conteudo_soup.find_all("div", class_="ua")
+    elementos_descricao = conteudo_soup.find_all("div", class_="cd")
+    elementos_link = conteudo_soup.find_all("div", class_="na")
+    elementos_data_publicacao = conteudo_soup.find_all("div", class_="ce")
+
+    lista_titulos = [titulo.get_text(strip=True) for titulo in elementos_titulo]
+    lista_descricoes = [descricao.get_text(strip=True) for descricao in elementos_descricao]
+    lista_links = [link.get_text(strip=True) for link in elementos_link]
+    lista_datas_publicacao = [data.get_text(strip=True) for data in elementos_data_publicacao]
+
+    print("Total de títulos encontrados:", len(lista_titulos))
+    print("Total de descrições encontradas:", len(lista_descricoes))
+    print("Total de links encontrados:", len(lista_links))
+    print("Total de datas de publicação encontradas:", len(lista_datas_publicacao))
+
+    comando_sql_upsert = """
+        INSERT INTO notices (title, description, link, publication_date)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            title = VALUES(title),
+            description = VALUES(description),
+            publication_date = VALUES(publication_date);
+    """
+
+    for titulo, descricao, link, data_publicacao_texto in zip(
+        lista_titulos, 
+        lista_descricoes, 
+        lista_links, 
+        lista_datas_publicacao
+    ):
+        busca_data = re.search(r"\d{2}/\d{2}/\d{4}", data_publicacao_texto)
+        
+        if busca_data:
+            data_extraida = busca_data.group(0)
+            data_formatada_banco = datetime.strptime(data_extraida, "%d/%m/%Y").strftime("%Y-%m-%d")
+        else:
+            data_formatada_banco = None
+
+        dados_noticia = (titulo, descricao, link, data_formatada_banco)
+        cursor_banco.execute(comando_sql_upsert, dados_noticia)
+
+    conexao_banco.commit()
+    conexao_banco.close()
+
+    print("Região Norte: Dados processados e salvos com sucesso!")

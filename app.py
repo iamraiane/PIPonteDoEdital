@@ -1,11 +1,11 @@
-from sudeste import scrape_sudeste
-from sul import scrape_sul
-from nordeste import scrape_nordeste
-from norte import scrape_norte
-from centro_oeste import scrape_centro_oeste
+from norte import extrair_concursos_regiao_norte
+from sudeste import extrair_concursos_regiao_sudeste
+from sul import extrair_concursos_regiao_sul
+# from nordeste import extrair_concursos_regiao_nordeste
+# from centro_oeste import extrair_concursos_regiao_centro_oeste
 
-noBancoSul = scrape_sul()
-noBancoSudeste = scrape_sudeste()
-noBancoNordeste = scrape_nordeste()
-noBancoNorte = scrape_norte()
-noBancoCentroOeste = scrape_centro_oeste()
+resultado_execucao_sul = extrair_concursos_regiao_sul()
+resultado_execucao_sudeste = extrair_concursos_regiao_sudeste()
+# resultado_execucao_nordeste = extrair_concursos_regiao_nordeste()
+resultado_execucao_norte = extrair_concursos_regiao_norte()
+# resultado_execucao_centro_oeste = extrair_concursos_regiao_centro_oeste()

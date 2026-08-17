@@ -37,9 +37,9 @@ def extrair_concursos_regiao_norte():
     """
 
     for titulo, descricao, link, data_publicacao_texto in zip(
-        lista_titulos, 
-        lista_descricoes, 
-        lista_links, 
+        lista_titulos,
+        lista_descricoes,
+        lista_links,
         lista_datas_publicacao
     ):
         busca_data = re.search(r"\d{2}/\d{2}/\d{4}", data_publicacao_texto)

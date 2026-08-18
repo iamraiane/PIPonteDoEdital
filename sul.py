@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 
 from conn import conectar
 
-
 def extrair_concursos_regiao_sul():
     url_regiao_sul = "https://www.pciconcursos.com.br/concursos/sul/"
 
@@ -45,9 +44,13 @@ def extrair_concursos_regiao_sul():
 
         classes = elemento.get("class", [])
 
-        # Identifica o estado
+# Identifica o estado
         if "ua" in classes:
-            estado_atual = elemento.get_text(" ", strip=True)
+            div_uf = elemento.find("div", class_="uf")
+            if div_uf:
+                estado_atual = div_uf.get_text(strip=True)
+            else:
+                estado_atual = elemento.get("id", "")
             continue
 
         # Identifica o concurso

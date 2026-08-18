@@ -56,14 +56,14 @@ def extrair_concursos_regiao_centro_oeste():
         # Identifica o concurso
         if "na" in classes or "da" in classes:
 
-            titulo_div = elemento.find("div", class_="ca")
+            titulo_link = elemento.find("a")
             sigla_div = elemento.find("div", class_="cc")
             descricao_div = elemento.find("div", class_="cd")
             data_div = elemento.find("div", class_="ce")
 
             titulo = (
-                titulo_div.get_text(" ", strip=True)
-                if titulo_div
+                titulo_link.get_text(" ", strip=True)
+                if titulo_link
                 else ""
             )
 

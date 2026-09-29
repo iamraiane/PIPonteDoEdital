@@ -22,7 +22,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Executar o script
-        run: python main.py
+        run: python app.py
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_USER: ${{ secrets.DB_USER }}

@@ -877,6 +877,13 @@ function StepDone({
   const [resendLoading, setResendLoading] = useState(false)
   const [resendMsg, setResendMsg] = useState<string | null>(null)
   const [resendErr, setResendErr] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(60)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = window.setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => window.clearTimeout(t)
+  }, [cooldown])
 
   async function handleResend() {
     setResendMsg(null)
@@ -886,10 +893,12 @@ function StepDone({
     try {
       await resendVerificationEmail(email)
       setResendMsg('Se existir uma conta não verificada com esse e-mail, enviaremos um novo link de confirmação.')
+      setCooldown(60)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao reenviar e-mail'
       if (message.includes('Aguarde um minuto')) {
         setResendErr('Aguarde um minuto antes de solicitar outro e-mail.')
+        setCooldown(60)
       } else {
         setResendErr(message)
       }
@@ -933,9 +942,13 @@ function StepDone({
         <button
           type="button"
           onClick={handleResend}
-          disabled={resendLoading}
+          disabled={resendLoading || cooldown > 0}
         >
-          {resendLoading ? 'Enviando…' : 'Reenviar verificação'}
+          {resendLoading
+            ? 'Enviando…'
+            : cooldown > 0
+              ? `Aguarde ${cooldown}s para reenviar`
+              : 'Reenviar verificação'}
         </button>
       </p>
     </div>

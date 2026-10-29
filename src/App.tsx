@@ -84,7 +84,7 @@ function App() {
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('loginTime')
-    window.location.href = '/login'
+    window.location.href = '/commercial'
   }
 
   if (sessionAtLoad && !loaded) return <AppLoader />

@@ -2,7 +2,7 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logoNome from '../assets/logo-nome.png'
 import logoPonte from '../assets/logo-ponte.png'
-import { register, updateUser, getTokenPayload } from '../services/user'
+import { register, updateUser, getTokenPayload, resendVerificationEmail } from '../services/user'
 import { sanitizeInput, sanitizeName, sanitizeEmail, validateName, validateEmail, validatePassword, sanitizeCpf, formatCpf, validateCpf } from '../utils/validation'
 import './SignupFlow.css'
 
@@ -874,6 +874,30 @@ function StepDone({
   status?: 'idle' | 'loading' | 'error'
   errorMessage?: string
 }) {
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendMsg, setResendMsg] = useState<string | null>(null)
+  const [resendErr, setResendErr] = useState<string | null>(null)
+
+  async function handleResend() {
+    setResendMsg(null)
+    setResendErr(null)
+    setResendLoading(true)
+
+    try {
+      await resendVerificationEmail(email)
+      setResendMsg('Se existir uma conta não verificada com esse e-mail, enviaremos um novo link de confirmação.')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao reenviar e-mail'
+      if (message.includes('Aguarde um minuto')) {
+        setResendErr('Aguarde um minuto antes de solicitar outro e-mail.')
+      } else {
+        setResendErr(message)
+      }
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
   return (
     <div className="pde-done">
       {status === 'error' && errorMessage && (
@@ -886,6 +910,9 @@ function StepDone({
         Enviamos um link de confirmação para <strong>{email}</strong>.
         Clique no link para ativar sua conta antes de fazer login.
       </p>
+
+      {resendMsg && <p className="pde-resend-status pde-resend-status--ok">{resendMsg}</p>}
+      {resendErr && <p className="pde-resend-status pde-resend-status--error">{resendErr}</p>}
 
       <div className="pde-actions">
         <button type="button" className="pde-btn pde-btn--ghost" onClick={onBack}>
@@ -900,6 +927,17 @@ function StepDone({
           <Icon name="arrow" />
         </button>
       </div>
+
+      <p className="pde-resend-link">
+        Não recebeu o email?{' '}
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resendLoading}
+        >
+          {resendLoading ? 'Enviando…' : 'Reenviar verificação'}
+        </button>
+      </p>
     </div>
   )
 }

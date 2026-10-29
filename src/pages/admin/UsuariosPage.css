@@ -70,3 +70,27 @@
 .pda-side-panel--status .pda-side-panel__body {
   padding-top: 0.1rem;
 }
+
+/* ---------- botão excluir ---------- */
+
+.pda-btn--danger {
+  background: #e15b5b;
+  color: #fff;
+}
+
+.pda-btn--danger:hover {
+  filter: brightness(1.08);
+}
+
+.pda-side-panel__footer--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.pda-side-panel__footer--split .pda-btn {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}

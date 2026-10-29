@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import logoNome from '../assets/logo-nome.png'
 import logoPonte from '../assets/logo-ponte.png'
-import { verifyEmail } from '../services/user'
+import { verifyEmail, resendVerificationEmail } from '../services/user'
 import './VerifyEmailPage.css'
 
 function Icon({ name }: { name: string }) {
@@ -49,6 +49,10 @@ export default function VerifyEmailPage() {
   const [errorMsg, setErrorMsg] = useState(() =>
     token ? '' : 'Token de verificação não encontrado.',
   )
+  const [resendEmail, setResendEmail] = useState('')
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendMessage, setResendMessage] = useState<string | null>(null)
+  const [resendError, setResendError] = useState<string | null>(null)
 
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
@@ -65,6 +69,35 @@ export default function VerifyEmailPage() {
         setErrorMsg(err.message || 'Token inválido ou expirado.')
       })
   }, [token])
+
+  async function handleResendVerification(e: React.FormEvent) {
+    e.preventDefault()
+    setResendError(null)
+    setResendMessage(null)
+    setResendLoading(true)
+
+    const email = resendEmail.trim().toLowerCase()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setResendError('Digite um e-mail válido')
+      setResendLoading(false)
+      return
+    }
+
+    try {
+      await resendVerificationEmail(email)
+      setResendMessage('Se existir uma conta não verificada com esse e-mail, enviaremos um novo link de confirmação')
+      setResendEmail('')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao reenviar e-mail'
+      if (message.includes('Aguarde um minuto')) {
+        setResendError('Aguarde um minuto antes de solicitar outro e-mail')
+      } else {
+        setResendError(message)
+      }
+    } finally {
+      setResendLoading(false)
+    }
+  }
 
   if (!token) {
     return (
@@ -104,6 +137,27 @@ export default function VerifyEmailPage() {
                 <p className="pde-login-success__sub">
                   Acesse seu email e clique no link de verificação enviado.
                 </p>
+                <div className="pde-resend-form">
+                  {resendMessage && <p className="pde-resend-msg pde-resend-msg--ok">{resendMessage}</p>}
+                  {resendError && <p className="pde-resend-msg pde-resend-msg--error">{resendError}</p>}
+                  <form onSubmit={handleResendVerification}>
+                    <input
+                      type="email"
+                      placeholder="Seu e-mail"
+                      value={resendEmail}
+                      onChange={(e) => setResendEmail(e.target.value)}
+                      disabled={resendLoading}
+                      autoComplete="email"
+                    />
+                    <button
+                      type="submit"
+                      className="pde-btn pde-btn--secondary"
+                      disabled={resendLoading}
+                    >
+                      {resendLoading ? 'Enviando…' : 'Reenviar e-mail'}
+                    </button>
+                  </form>
+                </div>
                 <div className="pde-actions pde-actions--center">
                   <button
                     type="button"
@@ -193,6 +247,27 @@ export default function VerifyEmailPage() {
                 <p className="pde-login-success__sub">
                   {errorMsg}
                 </p>
+                <div className="pde-resend-form">
+                  {resendMessage && <p className="pde-resend-msg pde-resend-msg--ok">{resendMessage}</p>}
+                  {resendError && <p className="pde-resend-msg pde-resend-msg--error">{resendError}</p>}
+                  <form onSubmit={handleResendVerification}>
+                    <input
+                      type="email"
+                      placeholder="Seu e-mail"
+                      value={resendEmail}
+                      onChange={(e) => setResendEmail(e.target.value)}
+                      disabled={resendLoading}
+                      autoComplete="email"
+                    />
+                    <button
+                      type="submit"
+                      className="pde-btn pde-btn--secondary"
+                      disabled={resendLoading}
+                    >
+                      {resendLoading ? 'Enviando…' : 'Reenviar e-mail'}
+                    </button>
+                  </form>
+                </div>
                 <div className="pde-actions pde-actions--center">
                   <button
                     type="button"

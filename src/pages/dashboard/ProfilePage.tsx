@@ -8,6 +8,7 @@ import {
   disconnectGoogleCalendar,
   type GcalStatus,
 } from '../../services/googleCalendar'
+import { changeEmail } from '../../services/user'
 import './ProfilePage.css'
 
 const INTERESSES = [
@@ -69,6 +70,12 @@ export default function ProfilePage({
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
+  const [emailChangeOpen, setEmailChangeOpen] = useState(false)
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false)
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null)
+  const [emailChangeSuccess, setEmailChangeSuccess] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [gcalAvailable] = useState(isGoogleCalendarAvailable)
   const [gcalStatus, setGcalStatus] = useState<GcalStatus>(getGoogleCalendarStatus)
@@ -121,6 +128,60 @@ export default function ProfilePage({
     }
   }
 
+  async function handleEmailChangeSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setEmailChangeError(null)
+    setEmailChangeLoading(true)
+
+    if (!newEmail.trim() || !currentPassword) {
+      setEmailChangeError('Preencha todos os campos')
+      setEmailChangeLoading(false)
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
+      setEmailChangeError('E-mail inválido')
+      setEmailChangeLoading(false)
+      return
+    }
+
+    try {
+      await changeEmail(newEmail.trim().toLowerCase(), currentPassword)
+      setEmailChangeOpen(false)
+      setNewEmail('')
+      setCurrentPassword('')
+      setEmailChangeSuccess(true)
+      window.setTimeout(() => setEmailChangeSuccess(false), 8000)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao solicitar alteração de e-mail'
+      if (message.includes('já está em uso') || message.includes('já cadastrado')) {
+        setEmailChangeError('Este e-mail já está em uso')
+      } else if (message.includes('Senha incorreta') || message.includes('401')) {
+        setEmailChangeError('Senha incorreta')
+      } else if (message.includes('igual ao atual')) {
+        setEmailChangeError('O novo e-mail é igual ao atual')
+      } else {
+        setEmailChangeError(message)
+      }
+    } finally {
+      setEmailChangeLoading(false)
+    }
+  }
+
+  function openEmailChangeModal() {
+    setEmailChangeOpen(true)
+    setEmailChangeError(null)
+    setNewEmail('')
+    setCurrentPassword('')
+  }
+
+  function closeEmailChangeModal() {
+    setEmailChangeOpen(false)
+    setEmailChangeError(null)
+    setNewEmail('')
+    setCurrentPassword('')
+  }
+
   const formattedCpf = profile.cpf ? formatCpf(profile.cpf) : ''
 
   const gcalConnected = gcalStatus === 'granted'
@@ -159,6 +220,24 @@ export default function ProfilePage({
     <div className="pdd-profile-page">
       <h1 className="pdd-page-title">Meu perfil</h1>
       <p className="pdd-profile-sub">Mantenha suas informações e preferências atualizadas.</p>
+
+      {emailChangeSuccess && (
+        <div className="pdd-email-success-banner" role="status">
+          <DashIcon name="check" />
+          <div>
+            <strong>Link de confirmação enviado!</strong>
+            <p>Enviamos um link de confirmação para o novo e-mail. Verifique sua caixa de entrada e clique no link para concluir a alteração.</p>
+          </div>
+          <button
+            type="button"
+            className="pdd-email-success-banner__close"
+            onClick={() => setEmailChangeSuccess(false)}
+            aria-label="Fechar aviso"
+          >
+            <DashIcon name="close" />
+          </button>
+        </div>
+      )}
 
       <section className="pdd-profile-card">
         <h2>Dados Pessoais</h2>
@@ -204,12 +283,23 @@ export default function ProfilePage({
           </label>
           <label className="pdd-profile-field">
             <span>E-mail</span>
-            <input
-              type="email"
-              value={profile.email}
-              disabled
-              className="pdd-profile-field--readonly"
-            />
+            <div className="pdd-profile-email-row">
+              <input
+                type="email"
+                value={profile.email}
+                disabled
+                className="pdd-profile-field--readonly"
+              />
+              <button
+                type="button"
+                className="pdd-profile-email-change-btn"
+                onClick={openEmailChangeModal}
+                disabled={!userActive}
+                title={!userActive ? 'Conta desativada' : undefined}
+              >
+                Alterar e-mail
+              </button>
+            </div>
           </label>
           <label className="pdd-profile-field">
             <span>CPF</span>
@@ -331,6 +421,61 @@ export default function ProfilePage({
             </div>
           </div>
         </section>
+      )}
+
+      {emailChangeOpen && (
+        <div className="pdd-modal-overlay" onClick={closeEmailChangeModal} role="presentation">
+          <div className="pdd-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="email-change-title">
+            <h2 id="email-change-title">Alterar e-mail</h2>
+            <p className="pdd-modal-hint">Insira o novo e-mail e sua senha atual para confirmar a alteração.</p>
+            <form onSubmit={handleEmailChangeSubmit}>
+              {emailChangeError && <p className="pdd-modal-error">{emailChangeError}</p>}
+              <div className="pdd-modal-field">
+                <label htmlFor="new-email">Novo e-mail</label>
+                <input
+                  type="email"
+                  id="new-email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="novo@email.com"
+                  required
+                  autoComplete="email"
+                  disabled={emailChangeLoading}
+                />
+              </div>
+              <div className="pdd-modal-field">
+                <label htmlFor="current-password">Senha atual</label>
+                <input
+                  type="password"
+                  id="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  disabled={emailChangeLoading}
+                />
+              </div>
+              <div className="pdd-modal-actions">
+                <button
+                  type="button"
+                  className="pdd-modal-btn pdd-modal-btn--secondary"
+                  onClick={closeEmailChangeModal}
+                  disabled={emailChangeLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="pdd-modal-btn pdd-modal-btn--primary"
+                  disabled={emailChangeLoading}
+                >
+                  {emailChangeLoading ? 'Enviando…' : 'Confirmar alteração'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )

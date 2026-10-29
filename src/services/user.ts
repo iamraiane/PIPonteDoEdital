@@ -126,6 +126,27 @@ export function getTokenPayload(): { id: number; role: string } | null {
   }
 }
 
+export async function changeEmail(email: string, password: string): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('change-email', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export async function confirmEmailChange(token: string): Promise<{ message: string }> {
+  return request<{ message: string }>('confirm-email-change', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+export async function resendVerificationEmail(email: string): Promise<{ message: string }> {
+  return request<{ message: string }>('resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
 export async function getAllUsers(): Promise<UserData[]> {
   return authRequest<UserData[]>('users')
 }
@@ -148,4 +169,8 @@ export async function disableUser(id: number): Promise<{ message: string }> {
 
 export async function activateUser(id: number): Promise<{ message: string }> {
   return authRequest<{ message: string }>(`users/${id}/activate`, { method: 'PATCH' })
+}
+
+export async function deleteUser(id: number): Promise<{ message: string }> {
+  return authRequest<{ message: string }>(`users/${id}`, { method: 'DELETE' })
 }

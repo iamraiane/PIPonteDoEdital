@@ -533,3 +533,267 @@
     width: 100%;
   }
 }
+
+/* ---------- email change row ---------- */
+.pdd-email-success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #e6f7f4;
+  border: 1.5px solid var(--teal);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.3rem;
+  animation: pdd-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pdd-email-success-banner > svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--teal);
+  margin-top: 2px;
+}
+
+.pdd-email-success-banner strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+
+.pdd-email-success-banner p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.pdd-email-success-banner__close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.2rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.pdd-email-success-banner__close:hover {
+  color: var(--ink);
+}
+
+.pdd-email-success-banner__close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pdd-profile-email-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pdd-profile-email-row .pdd-profile-field--readonly {
+  flex: 1;
+}
+
+.pdd-profile-email-change-btn {
+  flex-shrink: 0;
+  border: 1.5px solid var(--teal);
+  background: transparent;
+  color: var(--teal);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.pdd-profile-email-change-btn:hover:not(:disabled) {
+  background: var(--teal);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.pdd-profile-email-change-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 480px) {
+  .pdd-profile-email-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pdd-profile-email-change-btn {
+    width: 100%;
+  }
+}
+
+/* ---------- modal: alterar e-mail ---------- */
+.pdd-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 27, 48, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 1rem;
+}
+
+.pdd-modal-overlay:has(.pdd-modal) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pdd-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.8rem 1.8rem 1.6rem;
+  width: 100%;
+  max-width: 24rem;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+  transform: scale(0.92) translateY(14px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.25, 1.1), opacity 0.28s ease;
+}
+
+.pdd-modal-overlay:has(.pdd-modal) .pdd-modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.pdd-modal h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink, #16293a);
+}
+
+.pdd-modal-hint {
+  margin: 0 0 1.3rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--muted, #63788a);
+}
+
+.pdd-modal-error {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #d32f2f;
+  padding: 0.6rem 0.8rem;
+  background: #fdecea;
+  border-radius: 8px;
+}
+
+.pdd-modal-field {
+  margin-bottom: 1rem;
+}
+
+.pdd-modal-field label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pdd-modal-field input {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #a9c4c9;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.pdd-modal-field input:focus {
+  background: #bcd4d8;
+  box-shadow: 0 0 0 3px rgba(15, 155, 142, 0.18);
+  transform: translateY(-1px);
+}
+
+.pdd-modal-field input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.pdd-modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.pdd-modal-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.62rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.pdd-modal-btn:active {
+  transform: scale(0.97);
+}
+
+.pdd-modal-btn--secondary {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pdd-modal-btn--secondary:hover:not(:disabled) {
+  background: #dee2e6;
+}
+
+.pdd-modal-btn--primary {
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 6px 16px -4px rgba(15, 155, 142, 0.5);
+}
+
+.pdd-modal-btn--primary:hover:not(:disabled) {
+  background: #0c8478;
+  transform: translateY(-1px);
+}
+
+.pdd-modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 390px) {
+  .pdd-modal {
+    padding: 1.4rem 1.2rem 1.3rem;
+  }
+
+  .pdd-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pdd-modal-btn {
+    width: 100%;
+  }
+}

@@ -5,6 +5,7 @@ import LoginFlow from './pages/LoginFlow'
 import RecoverFlow from './pages/RecoverFlow'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
+import ConfirmEmailChangePage from './pages/ConfirmEmailChangePage'
 import DashboardApp from './pages/dashboard/DashboardApp'
 import AdminApp from './pages/admin/AdminApp'
 import CommercialPage from './pages/CommercialPage'
@@ -97,6 +98,7 @@ function App() {
         <Route path="/recover" element={<RecoverFlow />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/confirm-email-change" element={<ConfirmEmailChangePage />} />
         <Route path="/commercial" element={<CommercialPage />} />
         <Route index element={<Navigate to="/commercial" replace />} />
         <Route path="/terms" element={<TermsPage />} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashIcon } from '../dashboard/Icons'
-import { getAllUsers, promoteToAdmin, demoteToUser, promoteToPremium, disableUser, activateUser, getTokenPayload } from '../../services/user'
+import { getAllUsers, promoteToAdmin, demoteToUser, promoteToPremium, disableUser, activateUser, deleteUser, getTokenPayload } from '../../services/user'
 import type { UserData } from '../../services/user'
 import { Spinner } from '../../components/AppLoader'
 import './EditaisPage.css'
@@ -18,6 +18,7 @@ export default function UsuariosPage() {
   const [busca, setBusca] = useState('')
   const [mostrarTodos, setMostrarTodos] = useState(true)
   const [editando, setEditando] = useState<UserData | null>(null)
+  const [excluindo, setExcluindo] = useState<UserData | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -95,6 +96,26 @@ export default function UsuariosPage() {
         return 'Premium'
       default:
         return 'Ativo'
+    }
+  }
+
+  async function handleExcluir() {
+    if (!excluindo) return
+    if (excluindo.id === currentUserId) {
+      avisar('Você não pode excluir sua própria conta')
+      setExcluindo(null)
+      return
+    }
+    try {
+      await deleteUser(excluindo.id)
+      setUsuarios((prev) => prev.filter((u) => u.id !== excluindo.id))
+      if (editando?.id === excluindo.id) setEditando(null)
+      avisar('Usuário excluído')
+      setExcluindo(null)
+    } catch (err) {
+      console.error('Erro ao excluir usuário:', err)
+      avisar('Erro ao excluir usuário')
+      setExcluindo(null)
     }
   }
 
@@ -182,7 +203,20 @@ export default function UsuariosPage() {
       </div>
 
       {editando && (
-        <EditarStatusPanel usuario={editando} onCancel={() => setEditando(null)} onSave={salvarStatus} />
+        <EditarStatusPanel
+          usuario={editando}
+          onCancel={() => setEditando(null)}
+          onSave={salvarStatus}
+          onExcluir={() => setExcluindo(editando)}
+        />
+      )}
+
+      {excluindo && (
+        <ConfirmarExclusaoUsuarioModal
+          nome={excluindo.name}
+          onCancel={() => setExcluindo(null)}
+          onConfirm={handleExcluir}
+        />
       )}
 
       {toast && <div className="pda-toast">{toast}</div>}
@@ -194,10 +228,12 @@ function EditarStatusPanel({
   usuario,
   onCancel,
   onSave,
+  onExcluir,
 }: {
   usuario: UserData
   onCancel: () => void
   onSave: (id: number, isAdmin: boolean, isPremium: boolean, ativo: boolean) => void
+  onExcluir: () => void
 }) {
   const [isAdmin, setIsAdmin] = useState(usuario.role === 'admin')
   const [isPremium, setIsPremium] = useState(usuario.role === 'premium')
@@ -281,7 +317,16 @@ function EditarStatusPanel({
           </div>
         </div>
 
-        <div className="pda-side-panel__footer">
+        <div className="pda-side-panel__footer pda-side-panel__footer--split">
+          {!isSelf && (
+            <button
+              type="button"
+              className="pda-btn pda-btn--danger"
+              onClick={onExcluir}
+            >
+              Excluir
+            </button>
+          )}
           <button
             type="button"
             className="pda-btn pda-btn--teal"
@@ -292,5 +337,33 @@ function EditarStatusPanel({
         </div>
       </div>
     </>
+  )
+}
+
+function ConfirmarExclusaoUsuarioModal({
+  nome,
+  onCancel,
+  onConfirm,
+}: {
+  nome: string
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div className="pda-overlay" onClick={onCancel}>
+      <div className="pda-modal pda-modal--dark" onClick={(e) => e.stopPropagation()}>
+        <h2 className="pda-modal-title">Tem certeza que deseja excluir esse usuário?</h2>
+        <p className="pda-modal-note">{nome}</p>
+        <p className="pda-modal-note">Essa ação não pode ser desfeita.</p>
+        <div className="pda-modal-actions">
+          <button type="button" className="pda-btn pda-btn--outline" onClick={onCancel}>
+            Não
+          </button>
+          <button type="button" className="pda-btn pda-btn--danger" onClick={onConfirm}>
+            Sim, excluir
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

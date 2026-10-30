@@ -45,11 +45,12 @@ export default function CalendarPage({
   const deadlineMap = useMemo(() => {
     const map = new Map<string, Favorite[]>()
     for (const fav of favorites) {
-      const dateStr = fav.notice.publication_date
+      const dateStr = fav.notice.deadline_date ?? fav.notice.publication_date
       if (!dateStr) continue
-      const existing = map.get(dateStr)
+      const key = dateStr.slice(0, 10)
+      const existing = map.get(key)
       if (existing) existing.push(fav)
-      else map.set(dateStr, [fav])
+      else map.set(key, [fav])
     }
     return map
   }, [favorites])
@@ -156,7 +157,7 @@ export default function CalendarPage({
                     </span>
                     <h3 className="pdd-calendar-event-card__title">{n.title}</h3>
                     <p className="pdd-calendar-event-card__date">
-                      <DashIcon name="clock" /> {formatDate(n.publication_date!)}
+                      <DashIcon name="clock" /> {formatDate((n.deadline_date ?? n.publication_date)!)}
                     </p>
                   </div>
                   <a

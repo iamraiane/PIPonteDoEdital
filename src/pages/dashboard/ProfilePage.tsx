@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { DashIcon, DashAvatar, GoogleGlyph } from './Icons'
 import { sanitizeName, validateName, formatCpf } from '../../utils/validation'
 import {
@@ -9,6 +9,10 @@ import {
   type GcalStatus,
 } from '../../services/googleCalendar'
 import { changeEmail } from '../../services/user'
+import {
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from '../../services/notification'
 import './ProfilePage.css'
 
 const INTERESSES = [
@@ -46,6 +50,16 @@ const ESTADOS = [
   { value: 'TO', label: 'Tocantins' },
 ]
 
+const NOTIFICATION_DAY_OPTIONS: { value: number; label: string }[] = [
+  { value: 60, label: '60 dias antes' },
+  { value: 30, label: '30 dias antes' },
+  { value: 20, label: '20 dias antes' },
+  { value: 10, label: '10 dias antes' },
+  { value: 7, label: '7 dias antes' },
+  { value: 1, label: '1 dia antes' },
+  { value: 0, label: 'No dia do prazo' },
+]
+
 export type ProfileData = {
   nome: string
   email: string
@@ -81,6 +95,14 @@ export default function ProfilePage({
   const [gcalStatus, setGcalStatus] = useState<GcalStatus>(getGoogleCalendarStatus)
   const [gcalBusy, setGcalBusy] = useState(false)
   const [gcalMsg, setGcalMsg] = useState<string | null>(null)
+  const [notifDays, setNotifDays] = useState<number[]>([])
+  const [notifError, setNotifError] = useState<string | null>(null)
+
+  useEffect(() => {
+    getNotificationPreferences()
+      .then((data) => setNotifDays(data.selected))
+      .catch(() => setNotifError('Não foi possível carregar as preferências de notificação'))
+  }, [])
 
   function set<K extends keyof ProfileData>(key: K, value: ProfileData[K]) {
     onChange({ ...profile, [key]: value })
@@ -102,6 +124,13 @@ export default function ProfilePage({
     )
   }
 
+  function toggleNotifDay(value: number) {
+    setNotifError(null)
+    setNotifDays((prev) =>
+      prev.includes(value) ? prev.filter((d) => d !== value) : [...prev, value],
+    )
+  }
+
   function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -117,7 +146,10 @@ export default function ProfilePage({
     }
     setSaving(true)
     try {
-      await onSave()
+      await Promise.all([
+        onSave(),
+        updateNotificationPreferences(notifDays).then((data) => setNotifDays(data.selected)),
+      ])
       setSaved(true)
       setNameError(null)
       window.setTimeout(() => setSaved(false), 2200)
@@ -352,6 +384,37 @@ export default function ProfilePage({
             )
           })}
         </div>
+      </section>
+
+      <section className="pdd-profile-card">
+        <h2>Notificações</h2>
+        <p className="pdd-profile-card__hint">
+          Escolha com quanto antecedência quer receber avisos dos editais salvos.
+        </p>
+
+        {!userActive && (
+          <p className="pdd-profile-card__hint">Conta desativada: não é possível alterar.</p>
+        )}
+
+        <div className="pdd-notif-days">
+          {NOTIFICATION_DAY_OPTIONS.map((opt) => {
+            const active = notifDays.includes(opt.value)
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                className={`pdd-notif-day ${active ? 'is-active' : ''}`}
+                onClick={() => toggleNotifDay(opt.value)}
+                aria-pressed={active}
+                disabled={!userActive}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {notifError && <p className="pdd-notif-days__error">{notifError}</p>}
       </section>
 
       <div className="pdd-profile-save-row">

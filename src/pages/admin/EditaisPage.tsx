@@ -12,11 +12,12 @@ type Edital = {
   stateCode: string
   description: string
   prazo: string
+  deadlineDateISO: string
   publicationDateISO: string
 }
 
 function mapNoticeToEdital(n: NoticeApi): Edital {
-  const dateStr = n.publication_date
+  const dateStr = n.deadline_date ?? n.publication_date
   let prazo = 'Sem prazo'
   if (dateStr) {
     const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
@@ -32,6 +33,7 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
     stateCode: n.state_code ?? '',
     description: n.description ?? '',
     prazo,
+    deadlineDateISO: n.deadline_date ?? '',
     publicationDateISO: n.publication_date ?? '',
   }
 }
@@ -75,14 +77,30 @@ export default function EditaisPage() {
     return fallback
   }
 
+  function formatIso(dateStr: string): string {
+    if (!dateStr) return 'Sem prazo'
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
+    const d = iso
+      ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+      : new Date(dateStr)
+    if (isNaN(d.getTime())) return 'Sem prazo'
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
   async function salvarEdicao(atualizado: Edital) {
     try {
+      const deadlineISO = parseDataBR(atualizado.prazo, atualizado.deadlineDateISO)
       await updateNotice(Number(atualizado.id), {
         title: atualizado.titulo,
         description: atualizado.description,
-        publication_date: parseDataBR(atualizado.prazo, atualizado.publicationDateISO),
+        deadline_date: deadlineISO,
       })
-      setEditais((prev) => prev.map((e) => (e.id === atualizado.id ? { ...atualizado, publicationDateISO: parseDataBR(atualizado.prazo, atualizado.publicationDateISO) } : e)))
+      const next = {
+        ...atualizado,
+        deadlineDateISO: deadlineISO,
+        prazo: formatIso(deadlineISO),
+      }
+      setEditais((prev) => prev.map((e) => (e.id === atualizado.id ? next : e)))
       setEditando(null)
       avisar('Edital atualizado com sucesso')
     } catch (err) {
@@ -290,7 +308,7 @@ function EditarEditalSidePanel({
           </div>
 
           <div className="pda-field">
-            <label>Data de publicação</label>
+            <label>Prazo</label>
             <input
               type="text"
               value={form.prazo}

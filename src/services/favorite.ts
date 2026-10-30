@@ -8,6 +8,7 @@ export type FavoriteNotice = {
   description: string | null
   link: string
   publication_date: string | null
+  deadline_date: string | null
   created_at: string
 }
 

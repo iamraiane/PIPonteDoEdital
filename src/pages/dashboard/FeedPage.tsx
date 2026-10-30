@@ -73,9 +73,9 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
     tipo: 'Edital Público',
     titulo: n.description?.split('\n')[0]?.substring(0, 80) ?? n.title,
     descricao: n.description ?? '',
-    prazo: formatDate(n.publication_date),
-    dataPrazo: n.publication_date,
-    mes: monthFromDate(n.publication_date),
+    prazo: formatDate(n.deadline_date ?? n.publication_date),
+    dataPrazo: n.deadline_date ?? n.publication_date,
+    mes: monthFromDate(n.deadline_date ?? n.publication_date),
     link: n.link,
   }
 }

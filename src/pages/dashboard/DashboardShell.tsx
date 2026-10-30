@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import logoNome from '../../assets/logo-nome.png'
 import logoPonte from '../../assets/logo-ponte.png'
 import { DashIcon, DashAvatar } from './Icons'
 import { useFeedFilters, MONTH_LABELS, ESTADOS_UF } from './feedFilterStore'
+import {
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  type AppNotification,
+} from '../../services/notification'
 import './DashboardShell.css'
 
 export type PageKey = 'feed' | 'calendar' | 'saved' | 'plans' | 'faq' | 'about' | 'profile'
@@ -21,18 +27,17 @@ const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean 
 const MOBILE_PRIMARY_KEYS: PageKey[] = ['feed', 'calendar', 'saved', 'plans']
 const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) => !MOBILE_PRIMARY_KEYS.includes(item.key))
 
-type Notification = {
-  id: string
-  text: string
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return 'agora'
+  if (minutes < 60) return `há ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `há ${hours} h`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `há ${days} dia${days > 1 ? 's' : ''}`
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
-
-const NOTIFICATIONS: Notification[] = [
-  { id: '1', text: 'Novo edital encontrado' },
-  { id: '2', text: 'O prazo termina amanhã' },
-  { id: '3', text: 'Edital foi atualizado' },
-  { id: '4', text: 'Novo documento disponível' },
-  { id: '5', text: 'Resultado publicado' },
-]
 
 export default function DashboardShell({
   active,
@@ -62,12 +67,32 @@ export default function DashboardShell({
   const [moreOpen, setMoreOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [statesExpanded, setStatesExpanded] = useState(false)
-  const [unread, setUnread] = useState(NOTIFICATIONS.length)
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [notifLoading, setNotifLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
+
+  const unread = notifications.filter((n) => !n.is_read).length
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const data = await getNotifications()
+      setNotifications(data)
+    } catch {
+      // falha ao carregar notificações: mantém a lista atual
+    } finally {
+      setNotifLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    getNotifications()
+      .then(setNotifications)
+      .catch(() => {})
+  }, [])
 
   const { query, setQuery, months, states, counts, activeCount, toggleMonth, toggleState, clearFilters } =
     useFeedFilters()
@@ -108,13 +133,38 @@ export default function DashboardShell({
   }, [filtersOpen])
 
   function toggleNotif() {
-    setNotifOpen((v) => {
-      const next = !v
-      if (next) setUnread(0)
-      return next
-    })
+    const next = !notifOpen
+    setNotifOpen(next)
+    if (next) {
+      setNotifLoading(true)
+      refreshNotifications()
+    }
     setMenuOpen(false)
     setFiltersOpen(false)
+  }
+
+  async function handleNotifClick(n: AppNotification) {
+    if (!n.is_read) {
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item)),
+      )
+      try {
+        await markNotificationRead(n.id)
+      } catch {
+        // se falhar, a lista será atualizada no próximo refresh
+      }
+    }
+    setNotifOpen(false)
+    onNavigate('saved')
+  }
+
+  async function handleMarkAllRead() {
+    setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })))
+    try {
+      await markAllNotificationsRead()
+    } catch {
+      refreshNotifications()
+    }
   }
 
   function toggleMenu() {
@@ -271,17 +321,38 @@ export default function DashboardShell({
             </button>
 
             <div className={`pdd-notif-panel ${notifOpen ? 'is-open' : ''}`} role="menu">
-              {NOTIFICATIONS.map((n, i) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  role="menuitem"
-                  className="pdd-notif-panel__item"
-                  style={{ transitionDelay: notifOpen ? `${i * 45}ms` : '0ms' }}
-                >
-                  {n.text}
-                </button>
-              ))}
+              <div className="pdd-notif-panel__head">
+                <span className="pdd-notif-panel__title">Notificações</span>
+                {unread > 0 && (
+                  <button
+                    type="button"
+                    className="pdd-notif-panel__mark-all"
+                    onClick={handleMarkAllRead}
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+              </div>
+
+              {notifLoading && notifications.length === 0 ? (
+                <p className="pdd-notif-panel__empty">Carregando…</p>
+              ) : notifications.length === 0 ? (
+                <p className="pdd-notif-panel__empty">Nenhuma notificação</p>
+              ) : (
+                notifications.map((n, i) => (
+                  <button
+                    key={n.id}
+                    type="button"
+                    role="menuitem"
+                    className={`pdd-notif-panel__item ${n.is_read ? '' : 'is-unread'}`}
+                    style={{ transitionDelay: notifOpen ? `${Math.min(i, 8) * 45}ms` : '0ms' }}
+                    onClick={() => handleNotifClick(n)}
+                  >
+                    <span className="pdd-notif-panel__item-text">{n.message}</span>
+                    <span className="pdd-notif-panel__item-time">{timeAgo(n.created_at)}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 

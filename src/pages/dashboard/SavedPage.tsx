@@ -29,7 +29,7 @@ function parseDateKey(key: string): Date {
 }
 
 function noticeDate(fav: Favorite): string | null {
-  const raw = fav.notice.publication_date
+  const raw = fav.notice.deadline_date ?? fav.notice.publication_date
   return raw ? raw.slice(0, 10) : null
 }
 

@@ -446,7 +446,8 @@ html, body {
   position: absolute;
   right: -0.5rem;
   top: calc(100% + 0.6rem);
-  min-width: 15rem;
+  min-width: 19rem;
+  max-width: 22rem;
   background: rgba(63, 87, 109, 0.97);
   backdrop-filter: blur(6px);
   border-radius: var(--radius);
@@ -469,20 +470,90 @@ html, body {
   pointer-events: auto;
 }
 
+.pdd-notif-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.25rem;
+}
+
+.pdd-notif-panel__title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pdd-notif-panel__mark-all {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--teal-light);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.pdd-notif-panel__mark-all:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.pdd-notif-panel__empty {
+  margin: 0;
+  padding: 1rem 0.9rem;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .pdd-notif-panel__item {
   border: none;
   background: transparent;
   text-align: left;
-  padding: 0.7rem 0.9rem;
+  padding: 0.65rem 0.9rem;
   border-radius: 7px;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 600;
   font-family: inherit;
-  color: var(--teal-light);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   opacity: 0;
   transform: translateX(6px);
   transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease;
+}
+
+.pdd-notif-panel__item.is-unread {
+  color: var(--teal-light);
+  font-weight: 700;
+}
+
+.pdd-notif-panel__item.is-unread .pdd-notif-panel__item-text::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  margin-right: 0.45rem;
+  vertical-align: middle;
+}
+
+.pdd-notif-panel__item-time {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .pdd-notif-panel.is-open .pdd-notif-panel__item {
@@ -962,7 +1033,8 @@ html, body {
   }
 
   .pdd-notif-panel {
-    min-width: 13rem;
+    min-width: 15rem;
+    max-width: calc(100vw - 2rem);
     right: -0.3rem;
   }
 

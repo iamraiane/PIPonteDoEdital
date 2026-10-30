@@ -1,5 +1,22 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
+export class ApiError extends Error {
+  status: number
+  code?: string
+
+  constructor(message: string, status: number, code?: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
+async function toApiError(res: Response): Promise<ApiError> {
+  const body = await res.json().catch(() => ({}))
+  return new ApiError(body.message || `Request failed: ${res.status}`, res.status, body.code)
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}/${path}`, {
     ...init,
@@ -9,8 +26,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
   })
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.message || `Request failed: ${res.status}`)
+    throw await toApiError(res)
   }
   return res.json() as Promise<T>
 }
@@ -26,8 +42,7 @@ export async function authRequest<T>(path: string, init?: RequestInit): Promise<
     },
   })
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.message || `Request failed: ${res.status}`)
+    throw await toApiError(res)
   }
   return res.json() as Promise<T>
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logoNome from '../assets/logo-nome.png'
 import logoPonte from '../assets/logo-ponte.png'
-import { login } from '../services/user'
+import { login, resendVerificationEmail, ApiError } from '../services/user'
 import { sanitizeInput, sanitizeEmail, validateEmail } from '../utils/validation'
 import './LoginFlow.css'
 
@@ -94,6 +94,17 @@ export default function LoginFlow() {
   const [errorKey, setErrorKey] = useState(0)
   const [touched, setTouched] = useState(false)
   const [emailError, setEmailError] = useState('')
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendMsg, setResendMsg] = useState<string | null>(null)
+  const [resendErr, setResendErr] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = window.setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => window.clearTimeout(t)
+  }, [cooldown])
 
 
   useEffect(() => {
@@ -139,6 +150,9 @@ export default function LoginFlow() {
 
     setStatus('loading')
     setErrorMessage('')
+    setEmailNotVerified(false)
+    setResendMsg(null)
+    setResendErr(null)
     setShake(false)
 
   login(form.email, form.senha)
@@ -152,12 +166,41 @@ export default function LoginFlow() {
         window.location.href = '/dashboard/feed'
       }, 1300)
     })
-    .catch(() => {
+    .catch((err: unknown) => {
       setStatus('error')
-      setErrorMessage('Email ou senha inválidos')
+      const notVerified =
+        err instanceof ApiError &&
+        (err.code === 'EMAIL_NOT_VERIFIED' || (err.status === 403 && err.message.includes('Confirme seu e-mail')))
+      if (notVerified) {
+        setEmailNotVerified(true)
+      } else {
+        setErrorMessage('Email ou senha inválidos')
+      }
       setErrorKey((k) => k + 1)
       triggerShake()
     })
+  }
+
+  async function handleResend() {
+    setResendMsg(null)
+    setResendErr(null)
+    setResendLoading(true)
+
+    try {
+      await resendVerificationEmail(form.email)
+      setResendMsg('Se existir uma conta não verificada com esse e-mail, enviaremos um novo link de confirmação.')
+      setCooldown(60)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao reenviar e-mail'
+      if (message.includes('Aguarde um minuto')) {
+        setResendErr('Aguarde um minuto antes de solicitar outro e-mail.')
+        setCooldown(60)
+      } else {
+        setResendErr(message)
+      }
+    } finally {
+      setResendLoading(false)
+    }
   }
 
   return (
@@ -222,7 +265,33 @@ export default function LoginFlow() {
                 onSubmit={handleSubmit}
                 noValidate
               >
-                {status === 'error' && (
+                {status === 'error' && emailNotVerified && (
+                  <div key={errorKey} className="pde-verify-notice">
+                    <p className="pde-error">E-mail não verificado</p>
+                    <p className="pde-verify-notice__text">
+                      Este e-mail ainda não foi confirmado. Verifique sua caixa de entrada e
+                      clique no link de confirmação antes de entrar. Não recebeu?{' '}
+                      <strong>{form.email}</strong>
+                    </p>
+                    {resendMsg && <p className="pde-resend-status pde-resend-status--ok">{resendMsg}</p>}
+                    {resendErr && <p className="pde-resend-status pde-resend-status--error">{resendErr}</p>}
+                    <div className="pde-resend-link">
+                      Não recebeu o email?{' '}
+                      <button
+                        type="button"
+                        onClick={handleResend}
+                        disabled={resendLoading || cooldown > 0}
+                      >
+                        {resendLoading
+                          ? 'Enviando…'
+                          : cooldown > 0
+                            ? `Aguarde ${cooldown}s para reenviar`
+                            : 'Reenviar verificação'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {status === 'error' && !emailNotVerified && (
                   <p key={errorKey} className="pde-error">{errorMessage}</p>
                 )}
                 <div className="pde-field">

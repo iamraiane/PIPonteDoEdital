@@ -492,6 +492,71 @@ html, body {
   padding-left: 0.1rem;
 }
 
+/* ---------- e-mail não verificado ---------- */
+
+.pde-verify-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pde-verify-notice__text {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 26rem;
+}
+
+.pde-resend-link {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+  text-align: center;
+}
+
+.pde-resend-link button {
+  border: none;
+  background: none;
+  color: var(--teal);
+  font-weight: 600;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.pde-resend-link button:hover:not(:disabled) {
+  color: #0c8478;
+}
+
+.pde-resend-link button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pde-resend-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  max-width: 26rem;
+  line-height: 1.45;
+}
+
+.pde-resend-status--ok {
+  color: var(--teal);
+}
+
+.pde-resend-status--error {
+  color: var(--danger, #d32f2f);
+}
+
 /* ---------- rodapé ---------- */
 
 .pde-login-hint {

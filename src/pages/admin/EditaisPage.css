@@ -39,6 +39,23 @@
   color: var(--muted);
 }
 
+.pda-toolbar__btn {
+  width: auto;
+  padding: 0.55rem 1.2rem;
+  background: transparent;
+  border: 1.5px solid var(--navy);
+  color: var(--navy);
+}
+
+.pda-toolbar__btn:hover:not(:disabled) {
+  background: rgba(15, 155, 142, 0.1);
+}
+
+.pda-toolbar__btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .pda-search input:focus {
   background: #fff;
   border-color: var(--teal);

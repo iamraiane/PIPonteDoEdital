@@ -63,3 +63,7 @@ export async function updateNotificationPreferences(days: number[]): Promise<{ m
     body: JSON.stringify({ days }),
   })
 }
+
+export async function runNotificationJob(): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('notifications/run', { method: 'POST' })
+}

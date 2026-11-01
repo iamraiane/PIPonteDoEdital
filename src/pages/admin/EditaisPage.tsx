@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { DashIcon } from '../dashboard/Icons'
 import { getNotices, updateNotice, deleteNotice, type NoticeApi } from '../../services/notice'
+import { runNotificationJob } from '../../services/notification'
 import { getTokenPayload } from '../../services/user'
 import { Spinner } from '../../components/AppLoader'
 import './EditaisPage.css'
@@ -12,12 +13,13 @@ type Edital = {
   stateCode: string
   description: string
   prazo: string
-  deadlineDateISO: string
   publicationDateISO: string
 }
 
 function mapNoticeToEdital(n: NoticeApi): Edital {
-  const dateStr = n.deadline_date ?? n.publication_date
+  // O "prazo" exibido/editado no admin é a publication_date (mesma data
+  // que o job de notificações usa como referência quando não há deadline_date).
+  const dateStr = n.publication_date
   let prazo = 'Sem prazo'
   if (dateStr) {
     const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
@@ -33,8 +35,7 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
     stateCode: n.state_code ?? '',
     description: n.description ?? '',
     prazo,
-    deadlineDateISO: n.deadline_date ?? '',
-    publicationDateISO: n.publication_date ?? '',
+    publicationDateISO: n.publication_date?.slice(0, 10) ?? '',
   }
 }
 
@@ -56,25 +57,29 @@ export default function EditaisPage() {
   const [editando, setEditando] = useState<Edital | null>(null)
   const [excluindo, setExcluindo] = useState<Edital | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [testandoNotif, setTestandoNotif] = useState(false)
 
   const termo = busca.toLowerCase()
   const filtrados = editais.filter(
     (e) => e.titulo.toLowerCase().includes(termo) || e.orgao.toLowerCase().includes(termo)
   )
 
-  function avisar(msg: string) {
+  function avisar(msg: string, duracaoMs = 2200) {
     setToast(msg)
-    setTimeout(() => setToast(null), 2200)
+    setTimeout(() => setToast(null), duracaoMs)
   }
 
-  function parseDataBR(dataBR: string, fallback: string): string {
+  async function testarNotificacoes() {
+    setTestandoNotif(true)
     try {
-      const d = new Date(dataBR)
-      if (!isNaN(d.getTime())) return d.toISOString().split('T')[0]
-    } catch {
-      // data não interpretável: mantém a data existente (fallback)
+      const res = await runNotificationJob()
+      avisar(`${res.message} — confira o sino e o e-mail`, 5000)
+    } catch (err) {
+      console.error('Erro ao disparar notificações:', err)
+      avisar('Erro ao disparar notificações', 5000)
+    } finally {
+      setTestandoNotif(false)
     }
-    return fallback
   }
 
   function formatIso(dateStr: string): string {
@@ -89,16 +94,16 @@ export default function EditaisPage() {
 
   async function salvarEdicao(atualizado: Edital) {
     try {
-      const deadlineISO = parseDataBR(atualizado.prazo, atualizado.deadlineDateISO)
+      const publicationISO = atualizado.publicationDateISO.slice(0, 10)
       await updateNotice(Number(atualizado.id), {
         title: atualizado.titulo,
         description: atualizado.description,
-        deadline_date: deadlineISO,
+        publication_date: publicationISO,
       })
       const next = {
         ...atualizado,
-        deadlineDateISO: deadlineISO,
-        prazo: formatIso(deadlineISO),
+        publicationDateISO: publicationISO,
+        prazo: formatIso(publicationISO),
       }
       setEditais((prev) => prev.map((e) => (e.id === atualizado.id ? next : e)))
       setEditando(null)
@@ -137,6 +142,15 @@ export default function EditaisPage() {
             onChange={(e) => setBusca(e.target.value)}
           />
         </label>
+        <button
+          type="button"
+          className="pda-btn pda-toolbar__btn"
+          onClick={testarNotificacoes}
+          disabled={testandoNotif}
+          title="Dispara agora o job de notificações/e-mails de prazo"
+        >
+          {testandoNotif ? 'Disparando...' : 'Testar notificações'}
+        </button>
       </div>
 
       {loading && <Spinner label="Carregando editais..." />}
@@ -310,10 +324,9 @@ function EditarEditalSidePanel({
           <div className="pda-field">
             <label>Prazo</label>
             <input
-              type="text"
-              value={form.prazo}
-              onChange={(e) => setForm({ ...form, prazo: e.target.value })}
-              placeholder="Ex: 03 Ago 2026"
+              type="date"
+              value={form.publicationDateISO}
+              onChange={(e) => setForm({ ...form, publicationDateISO: e.target.value })}
             />
           </div>
         </div>

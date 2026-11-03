@@ -1,8 +1,8 @@
-from norte import extrair_concursos_regiao_norte
-from sudeste import extrair_concursos_regiao_sudeste
-from sul import extrair_concursos_regiao_sul
-from nordeste import extrair_concursos_regiao_nordeste
-from centro_oeste import extrair_concursos_regiao_centro_oeste
+from PciConcursos.norte import extrair_concursos_regiao_norte
+from PciConcursos.sudeste import extrair_concursos_regiao_sudeste
+from PciConcursos.sul import extrair_concursos_regiao_sul
+from PciConcursos.nordeste import extrair_concursos_regiao_nordeste
+from PciConcursos.centro_oeste import extrair_concursos_regiao_centro_oeste
 
 resultado_execucao_sul = extrair_concursos_regiao_sul()
 resultado_execucao_sudeste = extrair_concursos_regiao_sudeste()

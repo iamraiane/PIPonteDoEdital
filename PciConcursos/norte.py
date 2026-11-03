@@ -9,7 +9,7 @@ from conn import conectar
 def extrair_concursos_regiao_norte():
     url_regiao_norte = "https://www.pciconcursos.com.br/concursos/norte/"
 
-    pagina_html = urlopen(url_regiao_norte)
+    pagina_html = urlopen(url_regiao_norte)  # nosec B310 - URL fixa no código (https)
     conteudo_soup = BeautifulSoup(pagina_html, "html.parser")
 
     conexao_banco, cursor_banco = conectar()

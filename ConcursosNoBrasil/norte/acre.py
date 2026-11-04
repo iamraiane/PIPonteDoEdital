@@ -44,7 +44,7 @@ def extrair_concursos_acre():
 
         titulo = titulo_link.get_text(strip=True)
         link = titulo_link.get("href", "")
-        descricao = titulo_link.get("title", "") or titulo    
+        descricao = titulo_link.get("title", "") or titulo
 
         busca_data = re.search(r"/(\d{4})/(\d{2})/(\d{2})/", link)
         data_formatada_banco = (

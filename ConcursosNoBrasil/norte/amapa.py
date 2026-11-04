@@ -7,7 +7,7 @@ from conn import conectar
 
 
 def extrair_concursos_amapa():
-    url_amapa = "https://concursosnobrasil.com/concursos/am/"
+    url_amapa = "https://concursosnobrasil.com/concursos/ap/"
 
     pagina_html = urlopen(url_amapa)
     conteudo_soup = BeautifulSoup(pagina_html, "html.parser")
@@ -33,7 +33,7 @@ def extrair_concursos_amapa():
     """
 
     estado_atual = "AMAPA"
-    sigla = "AM"
+    sigla = "AP"
     total_concursos = 0
 
     for linha in conteudo_soup.select("table tbody tr"):
@@ -42,9 +42,9 @@ def extrair_concursos_amapa():
         if not titulo_link:
             continue
 
-        titulo = titulo_link.get_text(strip=True)              # "ESUDPAM"
+        titulo = titulo_link.get_text(strip=True)
         link = titulo_link.get("href", "")
-        descricao = titulo_link.get("title", "") or titulo     # "ESUDPAM abre novo processo..."
+        descricao = titulo_link.get("title", "") or titulo
 
         busca_data = re.search(r"/(\d{4})/(\d{2})/(\d{2})/", link)
         data_formatada_banco = (

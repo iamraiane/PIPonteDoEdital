@@ -180,7 +180,7 @@ export default function DashboardApp({
       >
         <Routes>
           <Route index element={<Navigate to="feed" replace />} />
-          <Route path="feed" element={<FeedPage userName={firstName} userId={userId} hasPremium={hasPremium} userActive={userActive} onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
+          <Route path="feed" element={<FeedPage userName={firstName} userId={userId} hasPremium={hasPremium} userActive={userActive} preferences={profile.interesses} onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
           <Route path="calendar" element={<CalendarPage hasPremium={hasPremium} userId={userId} onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
           <Route path="saved" element={<SavedPage userId={userId} userActive={userActive} />} />
           <Route path="plans" element={<PlansPage hasPremium={hasPremium} />} />

@@ -12,9 +12,15 @@ type Edital = {
   orgao: string
   stateCode: string
   description: string
+  themes: string[]
   prazo: string
   publicationDateISO: string
 }
+
+const TEMAS = [
+  'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
+  'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
+]
 
 function mapNoticeToEdital(n: NoticeApi): Edital {
   // O "prazo" exibido/editado no admin é a publication_date (mesma data
@@ -34,6 +40,7 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
     orgao: n.state ?? 'Órgão não informado',
     stateCode: n.state_code ?? '',
     description: n.description ?? '',
+    themes: Array.isArray(n.themes) ? n.themes.filter((t) => t) : [],
     prazo,
     publicationDateISO: n.publication_date?.slice(0, 10) ?? '',
   }
@@ -58,10 +65,13 @@ export default function EditaisPage() {
   const [excluindo, setExcluindo] = useState<Edital | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [testandoNotif, setTestandoNotif] = useState(false)
+  const [soSemTema, setSoSemTema] = useState(false)
 
   const termo = busca.toLowerCase()
   const filtrados = editais.filter(
-    (e) => e.titulo.toLowerCase().includes(termo) || e.orgao.toLowerCase().includes(termo)
+    (e) =>
+      (e.titulo.toLowerCase().includes(termo) || e.orgao.toLowerCase().includes(termo)) &&
+      (!soSemTema || e.themes.length === 0)
   )
 
   function avisar(msg: string, duracaoMs = 2200) {
@@ -95,10 +105,17 @@ export default function EditaisPage() {
   async function salvarEdicao(atualizado: Edital) {
     try {
       const publicationISO = atualizado.publicationDateISO.slice(0, 10)
+      const original = editais.find((e) => e.id === atualizado.id)
+      const themesChanged =
+        !original ||
+        original.themes.length !== atualizado.themes.length ||
+        original.themes.some((t, i) => t !== atualizado.themes[i])
       await updateNotice(Number(atualizado.id), {
         title: atualizado.titulo,
         description: atualizado.description,
         publication_date: publicationISO,
+        // Só envia themes se o admin alterou; sem isso o backend re-classifica sozinho.
+        ...(themesChanged ? { themes: atualizado.themes } : {}),
       })
       const next = {
         ...atualizado,
@@ -144,6 +161,14 @@ export default function EditaisPage() {
         </label>
         <button
           type="button"
+          className={`pda-btn pda-toolbar__btn ${soSemTema ? 'is-active' : ''}`}
+          onClick={() => setSoSemTema(!soSemTema)}
+          title="Mostra só os editais que ainda não têm tema classificado"
+        >
+          Sem tema{soSemTema ? ' · on' : ''}
+        </button>
+        <button
+          type="button"
           className="pda-btn pda-toolbar__btn"
           onClick={testarNotificacoes}
           disabled={testandoNotif}
@@ -165,6 +190,7 @@ export default function EditaisPage() {
               <th>Estado</th>
               <th>UF</th>
               <th>Descrição</th>
+              <th>Temas</th>
               <th>Prazo</th>
               <th></th>
             </tr>
@@ -172,7 +198,7 @@ export default function EditaisPage() {
           <tbody>
             {filtrados.length === 0 && (
               <tr className="pda-empty-row">
-                <td colSpan={6}>Nenhum edital encontrado.</td>
+                <td colSpan={7}>Nenhum edital encontrado.</td>
               </tr>
             )}
             {filtrados.map((edital, i) => (
@@ -186,6 +212,13 @@ export default function EditaisPage() {
                 <td data-label="Estado">{edital.orgao}</td>
                 <td data-label="UF">{edital.stateCode}</td>
                 <td data-label="Descrição"><span className="pda-cell-desc">{edital.description}</span></td>
+                <td data-label="Temas">
+                  {edital.themes.length === 0 ? (
+                    <span className="pda-theme-missing">Sem tema</span>
+                  ) : (
+                    <span className="pda-theme-list">{edital.themes.join(', ')}</span>
+                  )}
+                </td>
                 <td className="pda-cell-prazo" data-label="Prazo">{edital.prazo}</td>
                 <td className="pda-actions-cell" data-label="Ações">
                   <button
@@ -319,6 +352,36 @@ function EditarEditalSidePanel({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
+          </div>
+
+          <div className="pda-field">
+            <label>Temas (recomendação para os usuários)</label>
+            <div className="pda-theme-chips">
+              {TEMAS.map((tema) => {
+                const active = form.themes.includes(tema)
+                return (
+                  <button
+                    key={tema}
+                    type="button"
+                    className={`pda-theme-chip ${active ? 'is-active' : ''}`}
+                    aria-pressed={active}
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        themes: active
+                          ? form.themes.filter((t) => t !== tema)
+                          : [...form.themes, tema],
+                      })
+                    }
+                  >
+                    {tema}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="pda-field-hint">
+              Os temas definidos aqui têm prioridade sobre a classificação automática.
+            </p>
           </div>
 
           <div className="pda-field">

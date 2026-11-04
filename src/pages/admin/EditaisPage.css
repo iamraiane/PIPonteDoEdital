@@ -478,6 +478,71 @@
   border-color: #1e3f56 !important;
 }
 
+/* ---------- temas do edital ---------- */
+
+.pda-theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pda-theme-chip {
+  background: #162d42;
+  border: 1.5px solid #2a5070;
+  color: #9db2c5;
+  border-radius: 999px;
+  padding: 0.32rem 0.8rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.pda-theme-chip:hover {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+.pda-theme-chip.is-active {
+  background: rgba(15, 155, 142, 0.22);
+  border-color: var(--teal);
+  color: var(--teal-light);
+}
+
+.pda-field-hint {
+  margin: 0.4rem 0 0;
+  color: #8fa1b3;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.pda-theme-list {
+  display: block;
+  max-width: 12rem;
+  color: #8fa1b3;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.pda-theme-missing {
+  display: inline-block;
+  background: rgba(255, 152, 0, 0.14);
+  border: 1px solid rgba(255, 152, 0, 0.55);
+  color: #ffb74d;
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pda-toolbar__btn.is-active {
+  background: rgba(15, 155, 142, 0.16);
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
 .pda-modal--light {
   background: var(--card);
   color: var(--ink);

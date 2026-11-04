@@ -16,6 +16,8 @@ type Edital = {
   tipo: string
   titulo: string
   descricao: string
+  temas: string[]
+  recomendado: boolean
   prazo: string
   dataPrazo: string | null
   mes: number | null
@@ -63,7 +65,11 @@ function normalizeText(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-function mapNoticeToEdital(n: NoticeApi): Edital {
+function mapNoticeToEdital(n: NoticeApi, preferences: string[]): Edital {
+  const temas = Array.isArray(n.themes) ? n.themes : []
+  const prefNorm = preferences.map(normalizeText)
+  const recomendado =
+    prefNorm.length > 0 && temas.some((t) => prefNorm.includes(normalizeText(t)))
   return {
     id: String(n.id),
     orgao: n.title,
@@ -71,8 +77,10 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
     tempo: formatTimeAgo(n.created_at),
     tag: n.state_code ?? n.state ?? '',
     tipo: 'Edital Público',
-    titulo: n.description?.split('\n')[0]?.substring(0, 80) ?? n.title,
+    titulo: n.description?.trim() || n.title,
     descricao: n.description ?? '',
+    temas,
+    recomendado,
     prazo: formatDate(n.deadline_date ?? n.publication_date),
     dataPrazo: n.deadline_date ?? n.publication_date,
     mes: monthFromDate(n.deadline_date ?? n.publication_date),
@@ -93,7 +101,9 @@ function matchesStates(e: Edital, states: string[]): boolean {
   return states.length === 0 || states.includes(e.tag)
 }
 
-export default function FeedPage({ userName, userId, hasPremium = false, userActive = true, onNavigate }: { userName: string; userId?: number; hasPremium?: boolean; userActive?: boolean; onNavigate?: (page: string) => void }) {
+const NO_PREFERENCES: string[] = []
+
+export default function FeedPage({ userName, userId, hasPremium = false, userActive = true, preferences = NO_PREFERENCES, onNavigate }: { userName: string; userId?: number; hasPremium?: boolean; userActive?: boolean; preferences?: string[]; onNavigate?: (page: string) => void }) {
   const { query, months, states, setCounts, activeCount, clearFilters } = useFeedFilters()
   const [salvos, setSalvos] = useState<Record<string, boolean>>({})
   const [editais, setEditais] = useState<Edital[]>([])
@@ -109,14 +119,14 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
       getFavorites().catch(() => []),
     ])
       .then(([notices, favorites]) => {
-        setEditais(notices.map(mapNoticeToEdital))
+        setEditais(notices.map((n) => mapNoticeToEdital(n, preferences)))
         const savedMap: Record<string, boolean> = {}
         favorites.forEach((f) => { savedMap[String(f.notice_id)] = true })
         setSalvos(savedMap)
       })
       .catch(() => setError('Erro ao carregar editais'))
       .finally(() => setLoading(false))
-  }, [userId])
+  }, [userId, preferences])
 
   function toggleSalvo(id: string) {
     const noticeId = parseInt(id)
@@ -228,11 +238,19 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
 
             <p className="pdd-edital-card__tipo">
               <DashIcon name="building" /> {e.tipo}
+              {e.recomendado && <span className="pdd-badge-rec">Recomendado</span>}
             </p>
+
+            {e.temas.length > 0 && (
+              <div className="pdd-edital-card__themes">
+                {e.temas.map((tema) => (
+                  <span key={tema} className="pdd-theme-chip">{tema}</span>
+                ))}
+              </div>
+            )}
 
             <div className="pdd-edital-card__panel">
               <h2 className="pdd-edital-card__titulo">{e.titulo}</h2>
-              <p className="pdd-edital-card__desc">{e.descricao}</p>
             </div>
 
             <div className="pdd-edital-card__actions">

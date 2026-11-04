@@ -6,6 +6,7 @@ export type NoticeApi = {
   state: string | null
   state_code: string | null
   description: string | null
+  themes: string[] | null
   link: string
   publication_date: string | null
   deadline_date: string | null

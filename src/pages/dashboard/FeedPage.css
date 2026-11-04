@@ -155,18 +155,41 @@
   height: 14px;
 }
 
-.pdd-edital-card__titulo {
-  margin: 0 0 0.5rem;
-  font-size: 1.12rem;
+.pdd-badge-rec {
+  margin-left: auto;
+  background: var(--teal);
+  color: var(--navy);
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  text-align: left;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-.pdd-edital-card__desc {
+.pdd-edital-card__themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.7rem;
+}
+
+.pdd-theme-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.pdd-edital-card__titulo {
   margin: 0 0 1.1rem;
-  font-size: 0.85rem;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
   text-align: left;
 }
 
@@ -428,10 +451,6 @@
 
   .pdd-edital-card__titulo {
     font-size: 1rem;
-  }
-
-  .pdd-edital-card__desc {
-    font-size: 0.8rem;
   }
 
   .pdd-btn-outline {

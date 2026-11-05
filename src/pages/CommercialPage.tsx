@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import logoPonte from "../assets/logo-ponte.png";
 import logoNome from "../assets/logo-nome.png";
 import AppLoader from "../components/AppLoader";
+import { PLANS } from "../data/plans";
 import "./CommercialPage.css";
-
 const STATS = [
-  { value: "15.500+", label: "editais monitorados" },
   { value: "27", label: "estados e DF cobertos" },
   { value: "500+", label: "usuários cadastrados" },
   { value: "600+", label: "prazos agendados" },
@@ -73,35 +72,6 @@ const STEPS = [
     n: "3",
     title: "Receba o alerta certo",
     body: "Seu feed passa a mostrar só os editais que combinam com seu perfil, com prazo visível.",
-  },
-];
-
-const PLANS = [
-  {
-    name: "Grátis",
-    price: "R$ 0",
-    period: "/mês",
-    features: [
-      "Até 5 editais salvos",
-      "Feed personalizado básico",
-      "Notificações por e-mail",
-    ],
-    cta: "Continuar",
-    featured: false,
-  },
-  {
-    name: "Premium",
-    price: "R$ 39,90",
-    period: "/mês",
-    features: [
-      "Editais ilimitados",
-      "Calendário com lembretes",
-      "Filtro avançado",
-      "Alertas em tempo real",
-      "Painel de acompanhamento",
-    ],
-    cta: "Assinar",
-    featured: true,
   },
 ];
 

@@ -2,43 +2,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { DashIcon } from './Icons'
+import { PLANS } from '../../data/plans'
 import {
   createSubscription,
   syncSubscriptions,
   cancelSubscription,
 } from '../../services/subscription'
 import './PlansPage.css'
-
-const PLANS = [
-  {
-    id: 'free',
-    nome: 'Grátis',
-    preco: 'R$ 0',
-    destaque: false,
-    features: [
-      'Até 5 editais recomendados', 
-      'Feed personalizado básico', 
-    ],
-    cta: 'Continuar',
-    action: 'navigate' as const,
-  },
-  {
-    id: 'premium',
-    nome: 'Premium',
-    preco: 'R$ 9,90',
-    destaque: true,
-    features: [
-      'Editais ilimitados',
-      'Calendário com lembretes',
-      'Filtro avançado',
-      'Alertas em tempo real',
-      'Notificações personalizadas',
-      'Acompanhe quantos editais quiser'
-    ],
-    cta: 'Assinar',
-    action: 'subscribe' as const,
-  },
-]
 
 function redirectTo(url: string) {
   window.location.href = url
@@ -99,17 +69,17 @@ export default function PlansPage({ hasPremium = false }: { hasPremium?: boolean
         {PLANS.map((p, i) => {
           const isActivePremium = p.action === 'subscribe' && hasPremium
           return (
-            <div
-              key={p.id}
-              className={`pdd-plan-card ${p.destaque ? 'is-featured' : ''}`}
+        <div
+          key={p.id}
+          className={`pdd-plan-card ${p.featured ? 'is-featured' : ''}`}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              {p.destaque && <span className="pdd-plan-badge">mais popular</span>}
+              {p.featured && <span className="pdd-plan-badge">mais popular</span>}
 
-              <p className="pdd-plan-card__nome">{p.nome}</p>
-              <p className="pdd-plan-card__preco">
-                {p.preco}<span>/mês</span>
-              </p>
+          <p className="pdd-plan-card__nome">{p.name}</p>
+          <p className="pdd-plan-card__preco">
+            {p.price}<span>{p.period}</span>
+          </p>
 
               <ul className="pdd-plan-card__features">
                 {p.features.map((f) => (

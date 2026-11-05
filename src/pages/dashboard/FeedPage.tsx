@@ -206,7 +206,17 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
       {loading && <p>Carregando editais...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {favoriteError && (
-        <p style={{ color: 'red', marginBottom: '0.5rem' }}>{favoriteError}</p>
+        <div className="pdd-save-premium-overlay is-open" onClick={() => setFavoriteError(null)}>
+          <div className="pdd-save-premium-card" onClick={(e) => e.stopPropagation()}>
+            <span className="pdd-save-premium-card__crown">
+              <DashIcon name="trophy" />
+            </span>
+            <h3 className="pdd-save-premium-card__title">Precisa assinar o Premium</h3>
+            <button type="button" className="pdd-save-premium-card__btn" onClick={() => onNavigate?.('plans')}>
+              Assinar Premium
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="pdd-edital-list">
@@ -279,9 +289,7 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
             style={{ animationDelay: `${filteredEditais.length * 80}ms` }}
           >
             <span className="pdd-premium-cta__icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <DashIcon name="trophy" />
             </span>
             <h3 className="pdd-premium-cta__title">Mais editais disponíveis</h3>
             <p className="pdd-premium-cta__text">Assine o Premium para ter acesso a todos os editais e recursos da plataforma.</p>

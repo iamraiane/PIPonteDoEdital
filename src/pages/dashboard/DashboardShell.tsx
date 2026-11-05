@@ -16,7 +16,7 @@ export type PageKey = 'feed' | 'calendar' | 'saved' | 'plans' | 'faq' | 'about' 
 const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean }[] = [
   { key: 'feed', label: 'Feed', icon: 'home' },
   { key: 'calendar', label: 'Calendário', icon: 'calendar', premium: true },
-  { key: 'saved', label: 'Salvos', icon: 'bookmark' },
+  { key: 'saved', label: 'Salvos', icon: 'bookmark', premium: true },
   { key: 'plans', label: 'Planos', icon: 'filter' },
   { key: 'faq', label: 'Faq e dúvidas', icon: 'question' },
   { key: 'about', label: 'Quem somos', icon: 'people' },

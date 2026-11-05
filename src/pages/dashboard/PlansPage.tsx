@@ -15,21 +15,25 @@ const PLANS = [
     nome: 'Grátis',
     preco: 'R$ 0',
     destaque: false,
-    features: ['Até 5 editais salvos', 'Feed personalizado básico', 'Notificações por e-mail'],
+    features: [
+      'Até 5 editais recomendados', 
+      'Feed personalizado básico', 
+    ],
     cta: 'Continuar',
     action: 'navigate' as const,
   },
   {
     id: 'premium',
     nome: 'Premium',
-    preco: 'R$ 39,90',
+    preco: 'R$ 9,90',
     destaque: true,
     features: [
       'Editais ilimitados',
       'Calendário com lembretes',
       'Filtro avançado',
       'Alertas em tempo real',
-      'Painel de acompanhamento',
+      'Notificações personalizadas',
+      'Acompanhe quantos editais quiser'
     ],
     cta: 'Assinar',
     action: 'subscribe' as const,

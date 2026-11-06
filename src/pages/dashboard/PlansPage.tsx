@@ -92,7 +92,7 @@ export default function PlansPage({ hasPremium = false }: { hasPremium?: boolean
 
               <button
                 type="button"
-                className={`pdd-plan-cta ${p.destaque ? 'is-primary' : ''} ${isActivePremium ? 'is-active' : ''}`}
+                className={`pdd-plan-cta ${p.featured ? 'is-primary' : ''} ${isActivePremium ? 'is-active' : ''}`}
                 disabled={isActivePremium || subscribing || cancelling}
                 onClick={() => handleCta(p)}
               >

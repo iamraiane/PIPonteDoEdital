@@ -488,6 +488,29 @@ html, body {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.pdd-notif-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pdd-notif-panel__view-all {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pdd-notif-panel__view-all:hover {
+  color: var(--teal-light);
+  text-decoration: underline;
+}
+
 .pdd-notif-panel__mark-all {
   border: none;
   background: transparent;
@@ -1036,6 +1059,15 @@ html, body {
     min-width: 15rem;
     max-width: calc(100vw - 2rem);
     right: -0.3rem;
+  }
+
+  .pdd-notif-panel__head {
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+  }
+
+  .pdd-notif-panel__head-actions {
+    gap: 0.6rem;
   }
 
   .pdd-menu {

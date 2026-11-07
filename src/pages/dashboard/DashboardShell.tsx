@@ -9,9 +9,18 @@ import {
   markAllNotificationsRead,
   type AppNotification,
 } from '../../services/notification'
+import { timeAgo } from '../../utils/timeAgo'
 import './DashboardShell.css'
 
-export type PageKey = 'feed' | 'calendar' | 'saved' | 'plans' | 'faq' | 'about' | 'profile'
+export type PageKey =
+  | 'feed'
+  | 'calendar'
+  | 'saved'
+  | 'plans'
+  | 'faq'
+  | 'about'
+  | 'profile'
+  | 'notifications'
 
 const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean }[] = [
   { key: 'feed', label: 'Feed', icon: 'home' },
@@ -26,18 +35,6 @@ const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean 
 // dentro do item "Mais" (mesmo padrão do protótipo mobile).
 const MOBILE_PRIMARY_KEYS: PageKey[] = ['feed', 'calendar', 'saved', 'plans']
 const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) => !MOBILE_PRIMARY_KEYS.includes(item.key))
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'agora'
-  if (minutes < 60) return `há ${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `há ${hours} h`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `há ${days} dia${days > 1 ? 's' : ''}`
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-}
 
 export default function DashboardShell({
   active,
@@ -92,7 +89,22 @@ export default function DashboardShell({
     getNotifications()
       .then(setNotifications)
       .catch(() => {})
-  }, [])
+
+    // Polling: mantém o sino atualizado sem precisar recarregar a página.
+    const intervalId = window.setInterval(() => {
+      refreshNotifications()
+    }, 60_000)
+
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') refreshNotifications()
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [refreshNotifications])
 
   const { query, setQuery, months, states, counts, activeCount, toggleMonth, toggleState, clearFilters } =
     useFeedFilters()
@@ -323,15 +335,27 @@ export default function DashboardShell({
             <div className={`pdd-notif-panel ${notifOpen ? 'is-open' : ''}`} role="menu">
               <div className="pdd-notif-panel__head">
                 <span className="pdd-notif-panel__title">Notificações</span>
-                {unread > 0 && (
+                <div className="pdd-notif-panel__head-actions">
                   <button
                     type="button"
-                    className="pdd-notif-panel__mark-all"
-                    onClick={handleMarkAllRead}
+                    className="pdd-notif-panel__view-all"
+                    onClick={() => {
+                      setNotifOpen(false)
+                      onNavigate('notifications')
+                    }}
                   >
-                    Marcar todas como lidas
+                    Ver todas
                   </button>
-                )}
+                  {unread > 0 && (
+                    <button
+                      type="button"
+                      className="pdd-notif-panel__mark-all"
+                      onClick={handleMarkAllRead}
+                    >
+                      Marcar todas como lidas
+                    </button>
+                  )}
+                </div>
               </div>
 
               {notifLoading && notifications.length === 0 ? (

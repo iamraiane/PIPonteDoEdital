@@ -8,6 +8,7 @@ import PlansPage from './PlansPage'
 import FaqPage from './FaqPage'
 import AboutPage from './AboutPage'
 import ProfilePage, { type ProfileData } from './ProfilePage'
+import NotificationsPage from './NotificationsPage'
 import { FeedFilterProvider } from './FeedFilterContext'
 import { getUserById, updateUser } from '../../services/user'
 
@@ -19,6 +20,7 @@ const ROUTE_MAP: Record<string, PageKey> = {
   faq: 'faq',
   about: 'about',
   profile: 'profile',
+  notifications: 'notifications',
 }
 
 const KEY_TO_ROUTE: Record<PageKey, string> = {
@@ -29,6 +31,7 @@ const KEY_TO_ROUTE: Record<PageKey, string> = {
   faq: '/dashboard/faq',
   about: '/dashboard/about',
   profile: '/dashboard/profile',
+  notifications: '/dashboard/notifications',
 }
 
 function profilesEqual(a: ProfileData, b: ProfileData): boolean {
@@ -187,6 +190,7 @@ export default function DashboardApp({
           <Route path="faq" element={<FaqPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="profile" element={<ProfilePage profile={profile} onChange={setProfile} onSave={handleSaveProfile} userActive={userActive} />} />
+          <Route path="notifications" element={<NotificationsPage onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
         </Routes>
       </DashboardShell>
 

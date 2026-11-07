@@ -4,6 +4,7 @@ import './AboutPage.css'
 const TEAM = [
   { nome: 'Raiane Cecílio', papel: 'Estudante do 5º ano do curso de Análise e Desenvolvimento de Sistemas' },
   { nome: 'Gustavo Nori', papel: 'Estudante do 5º ano do curso de Análise e Desenvolvimento de Sistemas' },
+  { nome: 'Raiane Cecílio', papel: 'Estudante do 5º ano do curso de Análise e Desenvolvimento de Sistemas' },
 ]
 
 export default function AboutPage() {

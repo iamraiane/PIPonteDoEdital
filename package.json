@@ -1,0 +1,12 @@
+{
+  "name": "ponte-do-edital",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently -n back,front -c blue,green \"cd Backend && npm run dev\" \"cd FrontEnd && npx vite\"",
+    "dev:back": "cd Backend && npm run dev",
+    "dev:front": "cd FrontEnd && npx vite"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

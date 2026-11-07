@@ -57,7 +57,7 @@ foreach ($repo in $repos) {
         Ok "push: tudo em dia"
     }
 
-    git subtree pull --prefix=$repo.Prefixo $repo.Path main
+    git subtree pull --prefix=$($repo.Prefixo) $repo.Path main
     if ($LASTEXITCODE -ne 0) { Erro "subtree pull falhou em $($repo.Nome)"; exit 1 }
     Ok "espelhado em $($repo.Prefixo)/"
 }

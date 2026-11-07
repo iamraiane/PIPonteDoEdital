@@ -1,0 +1,981 @@
+.pda-editais-page {
+  max-width: 68rem;
+}
+
+/* ---------- toolbar ---------- */
+
+.pda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.pda-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 26rem;
+}
+
+.pda-search input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #c9d3dc;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem 0.6rem 2.6rem;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pda-search input::placeholder {
+  color: var(--muted);
+}
+
+.pda-toolbar__btn {
+  width: auto;
+  padding: 0.55rem 1.2rem;
+  background: transparent;
+  border: 1.5px solid var(--navy);
+  color: var(--navy);
+}
+
+.pda-toolbar__btn:hover:not(:disabled) {
+  background: rgba(15, 155, 142, 0.1);
+}
+
+.pda-toolbar__btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.pda-search input:focus {
+  background: #fff;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15, 155, 142, 0.18);
+}
+
+.pda-search__glyph {
+  position: absolute;
+  left: 0.9rem;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.pda-search__glyph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pda-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  user-select: none;
+}
+
+.pda-switch {
+  width: 2.6rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--navy-soft);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+}
+
+.pda-switch.is-on {
+  background: var(--navy);
+}
+
+.pda-switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pda-switch.is-on .pda-switch__knob {
+  transform: translateX(18px);
+  background: var(--teal-light);
+}
+
+/* ---------- tabela ---------- */
+
+.pda-table-wrap {
+  border-radius: 16px;
+  box-shadow: 0 16px 30px -18px rgba(13, 43, 69, 0.4);
+}
+
+.pda-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--navy-soft);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.pda-table thead tr {
+  background: var(--teal);
+}
+
+.pda-table thead th {
+  text-align: left;
+  padding: 0.85rem 1.2rem;
+  color: #06231e;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pda-table tbody tr {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: pda-row-in 0.35s ease forwards;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+@keyframes pda-row-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pda-table tbody tr:nth-child(odd) {
+  background: var(--navy-soft);
+}
+
+.pda-table tbody tr:nth-child(even) {
+  background: #0f3253;
+}
+
+.pda-table tbody tr:hover {
+  background: #17436b;
+}
+
+.pda-table td {
+  padding: 0.85rem 1.2rem;
+  color: #d7e2ec;
+  font-size: 0.86rem;
+  vertical-align: middle;
+}
+
+.pda-cell-title {
+  display: block;
+  color: var(--teal-light);
+  font-weight: 700;
+}
+
+.pda-cell-sub {
+  display: block;
+  color: #8fa1b3;
+  font-weight: 400;
+  font-size: 0.76rem;
+  margin-top: 0.15rem;
+}
+
+.pda-cell-prazo {
+  color: var(--teal-light);
+  font-weight: 600;
+}
+
+.pda-cell-desc {
+  display: block;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8fa1b3;
+  font-size: 0.82rem;
+}
+
+.pda-empty-row td {
+  text-align: center;
+  padding: 2.2rem;
+  color: #8fa1b3;
+  font-style: italic;
+}
+
+.pda-row--menu-open {
+  position: relative;
+  z-index: 35;
+}
+
+/* ---------- menu de ações da linha ---------- */
+
+.pda-actions-cell {
+  position: relative;
+  text-align: right;
+  width: 2.5rem;
+}
+
+.pda-dots-btn {
+  background: none;
+  border: none;
+  color: #d7e2ec;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.pda-dots-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pda-dots-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pda-dots-btn:active {
+  transform: scale(0.9);
+}
+
+.pda-row-menu {
+  position: absolute;
+  right: 2.2rem;
+  top: 0.25rem;
+  background: var(--teal-light);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 28px -10px rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  opacity: 0;
+  transform: scale(0.92) translateY(-4px);
+  animation: pda-menu-in 0.16s ease forwards;
+  transform-origin: top right;
+}
+
+@keyframes pda-menu-in {
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pda-row-menu button {
+  padding: 0.6rem 1.3rem;
+  background: none;
+  border: none;
+  color: #06231e;
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.pda-row-menu button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.pda-row-menu button.is-danger {
+  color: #7a2226;
+}
+
+/* ---------- modais ---------- */
+
+.pda-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 27, 48, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  animation: pda-fade-in 0.2s ease forwards;
+}
+
+@keyframes pda-fade-in {
+  to { opacity: 1; }
+}
+
+.pda-modal {
+  border-radius: 16px;
+  padding: 1.7rem 1.8rem 1.9rem;
+  width: 100%;
+  max-width: 26rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  opacity: 0;
+  transform: scale(0.92) translateY(14px);
+  animation: pda-modal-in 0.28s cubic-bezier(0.2, 0.9, 0.25, 1.1) forwards;
+}
+
+@keyframes pda-modal-in {
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ---------- painel lateral de edição ---------- */
+
+.pda-side-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 27, 48, 0.75);
+  z-index: 99;
+  opacity: 0;
+  animation: pda-fade-in 0.2s ease forwards;
+}
+
+.pda-side-panel {
+  position: fixed;
+  right: 0;
+  top: 80px;
+  width: 36rem;
+  max-width: 90vw;
+  max-height: calc(100dvh - 96px);
+  background: var(--navy);
+  color: #fff;
+  z-index: 100;
+  padding: 1.2rem 1.4rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.5);
+  transform: translateX(100%);
+  animation: pda-side-panel-in 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.1) forwards;
+}
+
+@keyframes pda-side-panel-in {
+  to { transform: translateX(0); }
+}
+
+/* Área rolável: fica entre o cabeçalho e o rodapé (que nunca saem da tela). */
+.pda-side-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pda-side-panel__footer {
+  flex: 0 0 auto;
+  margin-top: 0.6rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pda-side-panel__footer .pda-btn--teal {
+  width: 100%;
+  margin-top: 0;
+}
+
+.pda-side-panel__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.pda-side-panel__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+}
+
+.pda-side-panel__close {
+  background: none;
+  border: none;
+  color: #9db2c5;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pda-side-panel__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.pda-side-panel__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pda-side-panel .pda-field {
+  margin-bottom: 0.6rem;
+}
+
+.pda-side-panel .pda-field label {
+  color: #9db2c5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.pda-side-panel .pda-field input,
+.pda-side-panel .pda-field select,
+.pda-side-panel .pda-field textarea {
+  width: 100%;
+  background: #162d42;
+  color: #fff;
+  border: 1px solid #2a5070;
+  border-radius: 9px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  box-sizing: border-box;
+}
+
+.pda-side-panel .pda-field input:focus,
+.pda-side-panel .pda-field select:focus,
+.pda-side-panel .pda-field textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15, 155, 142, 0.25);
+}
+
+.pda-side-panel .pda-field select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #9db2c5 50%),
+    linear-gradient(135deg, #9db2c5 50%, transparent 50%);
+  background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.pda-side-panel .pda-field textarea {
+  resize: none;
+  min-height: 2.5rem;
+  overflow: hidden;
+}
+
+.pda-field--readonly {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #1a3a52 !important;
+  border-color: #1e3f56 !important;
+}
+
+/* ---------- temas do edital ---------- */
+
+.pda-theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pda-theme-chip {
+  background: #162d42;
+  border: 1.5px solid #2a5070;
+  color: #9db2c5;
+  border-radius: 999px;
+  padding: 0.32rem 0.8rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.pda-theme-chip:hover {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+.pda-theme-chip.is-active {
+  background: rgba(15, 155, 142, 0.22);
+  border-color: var(--teal);
+  color: var(--teal-light);
+}
+
+.pda-field-hint {
+  margin: 0.4rem 0 0;
+  color: #8fa1b3;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.pda-theme-list {
+  display: block;
+  max-width: 12rem;
+  color: #8fa1b3;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.pda-theme-missing {
+  display: inline-block;
+  background: rgba(255, 152, 0, 0.14);
+  border: 1px solid rgba(255, 152, 0, 0.55);
+  color: #ffb74d;
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pda-toolbar__btn.is-active {
+  background: rgba(15, 155, 142, 0.16);
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.pda-modal--light {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+}
+
+.pda-modal--dark {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.pda-modal--dark .pda-field label {
+  color: #9db2c5;
+}
+
+.pda-modal--dark .pda-field input,
+.pda-modal--dark .pda-field select,
+.pda-modal--dark .pda-field textarea {
+  background: #162d42;
+  color: #fff;
+  border-color: #2a5070;
+}
+
+.pda-modal--dark .pda-btn--primary {
+  background: var(--teal-light);
+  color: #06231e;
+}
+
+.pda-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 1.2rem;
+}
+
+.pda-modal-note {
+  color: #9db2c5;
+  font-size: 0.85rem;
+  margin-top: -0.6rem;
+}
+
+.pda-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pda-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.pda-field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.pda-field input,
+.pda-field select,
+.pda-field textarea {
+  border: 1px solid #d5dde5;
+  border-radius: 9px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  resize: none;
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.pda-field input:focus,
+.pda-field select:focus,
+.pda-field textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15, 155, 142, 0.18);
+}
+
+.pda-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 999px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.2s ease, background 0.2s ease;
+}
+
+.pda-btn:active {
+  transform: scale(0.97);
+}
+
+.pda-btn--primary {
+  background: var(--navy);
+  color: #fff;
+  margin-top: 0.3rem;
+}
+
+.pda-btn--primary:hover {
+  filter: brightness(1.2);
+}
+
+.pda-modal-actions {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 1.4rem;
+}
+
+.pda-btn--outline {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+.pda-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pda-btn--teal {
+  background: var(--teal-light);
+  color: #06231e;
+}
+
+.pda-btn--teal:hover {
+  filter: brightness(1.06);
+}
+
+/* ---------- toast ---------- */
+
+.pda-toast {
+  position: fixed;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: var(--teal-light);
+  padding: 0.75rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  box-shadow: 0 16px 30px -10px rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  opacity: 0;
+  animation: pda-toast-in 0.25s ease forwards;
+}
+
+@keyframes pda-toast-in {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 700px) {
+  .pda-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- botão único "Ajustar" (Usuários) ---------- */
+
+.pda-actions-cell--single {
+  width: auto;
+  text-align: right;
+}
+
+.pda-adjust-btn {
+  background: var(--teal-light);
+  color: #06231e;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.pda-adjust-btn:hover {
+  filter: brightness(1.08);
+}
+
+.pda-adjust-btn:active {
+  transform: scale(0.96);
+}
+
+/* ==========================================================================
+   Responsividade — Editais / Usuários (painel admin)
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .pda-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pda-search {
+    max-width: none;
+  }
+}
+
+/* Abaixo de 720px a tabela vira uma lista de cartões: cada <tr> é um
+   cartão e cada <td> mostra o rótulo da coluna via data-label. */
+@media (max-width: 720px) {
+  .pda-table-wrap {
+    overflow: visible;
+  }
+
+  .pda-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .pda-table,
+  .pda-table tbody,
+  .pda-table tr,
+  .pda-table td {
+    display: block;
+    width: 100%;
+    /* Sem border-box, o padding de cada célula é somado aos 100% e o
+       cartão fica mais largo que a tela (texto cortado na direita). */
+    box-sizing: border-box;
+  }
+
+  .pda-table tbody tr {
+    background: var(--navy-soft) !important;
+    border-radius: 14px;
+    padding: 0.4rem 0.2rem;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.5);
+  }
+
+  .pda-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding: 0.55rem 1rem;
+    text-align: right;
+    min-width: 0;
+    /* `anywhere` (e não `break-word`) reduz o min-content: e-mails longos
+       quebram em vez de estourar a largura do cartão. */
+    overflow-wrap: anywhere;
+  }
+
+  .pda-table td::before {
+    content: attr(data-label);
+    color: var(--teal-light);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Conteúdo da célula: empilha título/órgão (ou avatar/nome) sem espremer. */
+  .pda-cell {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .pda-cell-title,
+  .pda-cell-sub {
+    text-align: right;
+  }
+
+  /* No celular a descrição aparece inteira, sem reticências. */
+  .pda-cell-desc {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .pda-actions-cell,
+  .pda-actions-cell--single {
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .pda-actions-cell::before {
+    content: '';
+  }
+
+  .pda-row-menu {
+    right: 1rem;
+    top: auto;
+  }
+
+  /* Painel lateral vira bottom sheet: sobe de baixo, ocupa 92% da tela e
+     mantém cabeçalho e rodapé (botão Salvar) sempre visíveis. */
+  .pda-side-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 92dvh;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    padding: 1.4rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    animation: pda-side-sheet-in 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.1) forwards;
+  }
+
+  @keyframes pda-side-sheet-in {
+    to { transform: translateY(0); }
+  }
+
+  /* Alça visual da folha. */
+  .pda-side-panel::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.6rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  /* Toast acima da barra de navegação inferior. */
+  .pda-toast {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 480px) {
+  .pda-modal {
+    max-width: calc(100vw - 2rem);
+    padding: 1.3rem 1.2rem 1.5rem;
+  }
+}
+
+/* ---------- responsivo: Xiaomi, Pocophone, iPhone SE ---------- */
+
+@media (max-width: 390px) {
+  .pda-editais-page {
+    max-width: 100%;
+  }
+
+  .pda-search input {
+    padding: 0.5rem 0.8rem 0.5rem 2.3rem;
+    font-size: 0.85rem;
+  }
+
+  .pda-toggle-label {
+    font-size: 0.82rem;
+  }
+
+  .pda-switch {
+    width: 2.3rem;
+    height: 1.35rem;
+  }
+
+  .pda-switch__knob {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pda-switch.is-on .pda-switch__knob {
+    transform: translateX(16px);
+  }
+
+  .pda-table thead th {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.76rem;
+  }
+
+  .pda-table td {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .pda-table tbody tr {
+    border-radius: 12px;
+    margin-bottom: 0.6rem;
+  }
+
+  .pda-cell-title {
+    font-size: 0.85rem;
+  }
+
+  .pda-cell-sub {
+    font-size: 0.7rem;
+  }
+
+  .pda-modal {
+    padding: 1.1rem 1rem 1.3rem;
+    border-radius: 14px;
+  }
+
+  .pda-side-panel {
+    padding: 1.2rem 0.9rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pda-modal-title {
+    font-size: 1rem;
+  }
+
+  .pda-field input,
+  .pda-field select,
+  .pda-field textarea {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.82rem;
+  }
+
+  .pda-btn {
+    padding: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .pda-row-menu {
+    right: 0.8rem;
+  }
+
+  .pda-row-menu button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+}

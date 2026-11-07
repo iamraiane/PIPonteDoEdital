@@ -1,0 +1,105 @@
+.pda-page-title {
+  margin: 0 0 0.15rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.pda-page-sub {
+  margin: 0 0 1.6rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.pda-overview-page {
+  max-width: 60rem;
+}
+
+.pda-metrics-panel {
+  background: var(--navy);
+  border-radius: 18px;
+  padding: 1.7rem;
+  display: flex;
+  gap: 1.3rem;
+  flex-wrap: wrap;
+  box-shadow: 0 20px 40px -18px rgba(13, 43, 69, 0.55);
+}
+
+.pda-metric-card {
+  background: var(--navy-soft);
+  border-radius: 14px;
+  padding: 1.2rem 1.5rem;
+  min-width: 12rem;
+  flex: 1;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: pda-metric-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+@keyframes pda-metric-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pda-metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 26px -10px rgba(0, 0, 0, 0.4);
+}
+
+.pda-metric-card__label {
+  margin: 0 0 0.6rem;
+  color: var(--teal-light);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pda-metric-card__value {
+  margin: 0;
+  color: var(--teal-light);
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .pda-metrics-panel {
+    padding: 1.2rem;
+    gap: 1rem;
+  }
+
+  .pda-metric-card {
+    min-width: 100%;
+  }
+}
+
+/* ---------- responsivo: Xiaomi, Pocophone, iPhone SE ---------- */
+
+@media (max-width: 390px) {
+  .pda-page-title {
+    font-size: 1.3rem;
+  }
+
+  .pda-page-sub {
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .pda-metrics-panel {
+    padding: 1rem;
+    gap: 0.8rem;
+    border-radius: 14px;
+  }
+
+  .pda-metric-card {
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+  }
+
+  .pda-metric-card__label {
+    font-size: 0.8rem;
+  }
+
+  .pda-metric-card__value {
+    font-size: 1.7rem;
+  }
+}

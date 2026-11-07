@@ -1,0 +1,144 @@
+.pdd-retorno-page {
+  --teal: #0f9b8e;
+  --teal-soft: #d7f0ea;
+  --ink: #16293a;
+  --muted: #63788a;
+  --card: #ffffff;
+
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(160deg, #0b2239 0%, #0e3350 60%, #0f9b8e 160%);
+}
+
+.pdd-retorno-card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 2.6rem 2.4rem;
+  width: 100%;
+  max-width: 26rem;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+  animation: pdd-retorno-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pdd-retorno-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pdd-retorno-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin-bottom: 1.2rem;
+}
+
+.pdd-retorno-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.pdd-retorno-icon--checking {
+  background: var(--teal-soft);
+}
+
+.pdd-retorno-icon--success {
+  background: #e6f7ef;
+  color: #1eae6b;
+}
+
+.pdd-retorno-icon--pending {
+  background: #fff4d6;
+  color: #d4a017;
+}
+
+.pdd-retorno-icon--error {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.pdd-retorno-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid rgba(15, 155, 142, 0.25);
+  border-top-color: var(--teal);
+  animation: pdd-retorno-spin 0.8s linear infinite;
+}
+
+@keyframes pdd-retorno-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pdd-retorno-title {
+  margin: 0 0 0.6rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.pdd-retorno-text {
+  margin: 0 0 1.6rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.pdd-retorno-actions {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pdd-retorno-btn {
+  display: inline-block;
+  border: none;
+  border-radius: 8px;
+  padding: 0.72rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.pdd-retorno-btn:active {
+  transform: scale(0.97);
+}
+
+.pdd-retorno-btn--primary {
+  background: var(--teal);
+  color: #fff;
+}
+
+.pdd-retorno-btn--primary:hover {
+  background: #0d8a7e;
+}
+
+.pdd-retorno-btn--secondary {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.pdd-retorno-btn--secondary:hover {
+  background: #dee2e6;
+}
+
+@media (max-width: 390px) {
+  .pdd-retorno-card {
+    padding: 2rem 1.4rem;
+  }
+
+  .pdd-retorno-title {
+    font-size: 1.15rem;
+  }
+}

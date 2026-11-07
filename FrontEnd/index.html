@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/src/assets/PonteIcon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ponte do Edital</title>
+    <style>
+      .pe-boot-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.1rem;
+        background: #0d2b45;
+      }
+      .pe-boot-loader__brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .pe-boot-loader__icon {
+        height: 2.1rem;
+        width: auto;
+        display: block;
+      }
+      .pe-boot-loader__logo {
+        height: 1.6rem;
+        width: auto;
+        display: block;
+      }
+      .pe-boot-loader__spinner {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 4px solid rgba(0, 212, 194, 0.22);
+        border-top-color: #00d4c2;
+        box-shadow: 0 0 18px rgba(0, 212, 194, 0.25);
+        animation: pe-boot-spin 0.8s linear infinite;
+        will-change: transform;
+      }
+      @keyframes pe-boot-spin {
+        to { transform: rotate(360deg); }
+      }
+      .pe-boot-loader__message {
+        font: 500 14px/1.45 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pe-boot-loader__spinner { animation-duration: 1.8s; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="pe-boot-loader" role="status" aria-label="Carregando">
+        <span class="pe-boot-loader__brand">
+          <img src="/src/assets/logo-ponte.png" alt="" aria-hidden="true" class="pe-boot-loader__icon" />
+          <img src="/src/assets/logo-nome.png" alt="Ponte do Edital" class="pe-boot-loader__logo" />
+        </span>
+        <span class="pe-boot-loader__spinner"></span>
+        <span class="pe-boot-loader__message">Carregando...</span>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,96 @@
+.pda-usuarios-page {
+  max-width: 68rem;
+}
+
+.pda-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pda-avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--teal-light);
+  color: #06231e;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.pda-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.pda-badge--admin {
+  background: rgba(0, 212, 194, 0.18);
+  color: var(--teal-light);
+}
+
+.pda-badge--ativo {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d7e2ec;
+}
+
+.pda-badge--inativo {
+  background: rgba(225, 91, 91, 0.18);
+  color: #f3a0a5;
+}
+
+/* Título do painel e nome do usuário: com margin-top negativo o nome
+   encostava no título (0.8rem do header - 0.5rem da nota = 0.3rem). */
+.pda-side-panel--status .pda-modal-note--tight {
+  margin-top: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.pda-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.pda-status-row:last-of-type {
+  border-bottom: none;
+}
+
+/* Painel "Editar Status": mesmas regras do painel dos Editais. */
+.pda-side-panel--status .pda-side-panel__body {
+  padding-top: 0.1rem;
+}
+
+/* ---------- botão excluir ---------- */
+
+.pda-btn--danger {
+  background: #e15b5b;
+  color: #fff;
+}
+
+.pda-btn--danger:hover {
+  filter: brightness(1.08);
+}
+
+.pda-side-panel__footer--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.pda-side-panel__footer--split .pda-btn {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}

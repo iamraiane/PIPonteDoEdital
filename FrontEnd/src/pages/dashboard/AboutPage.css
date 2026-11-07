@@ -1,0 +1,161 @@
+.pdd-about-page {
+  max-width: 50rem;
+}
+
+.pdd-about-intro {
+  margin: -0.6rem 0 1.6rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 40rem;
+}
+
+.pdd-about-card {
+  background: var(--teal-soft);
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem;
+  margin-bottom: 1.3rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: pdd-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pdd-card-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pdd-about-card h2 {
+  margin: 0 0 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.pdd-about-card__inner {
+  background: var(--teal);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+}
+
+.pdd-about-card__inner p {
+  margin: 0;
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.pdd-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+}
+
+.pdd-team-card {
+  background: var(--teal);
+  border-radius: 12px;
+  padding: 1.2rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: pdd-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pdd-team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 28px -14px rgba(13, 43, 69, 0.45);
+}
+
+.pdd-team-card svg {
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.pdd-team-card__nome {
+  margin: 0;
+  font-weight: 800;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.pdd-team-card__papel {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------- responsivo (celular) ---------- */
+
+@media (max-width: 480px) {
+  .pdd-about-page {
+    max-width: 100%;
+  }
+
+  .pdd-about-intro {
+    font-size: 0.88rem;
+  }
+
+  .pdd-about-card {
+    padding: 1.1rem 1.2rem;
+    border-radius: 12px;
+  }
+
+  .pdd-about-card h2 {
+    font-size: 0.95rem;
+  }
+
+  .pdd-about-card__inner {
+    padding: 0.85rem 1rem;
+  }
+
+  .pdd-about-card__inner p {
+    font-size: 0.85rem;
+  }
+
+  .pdd-team-grid {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.8rem;
+  }
+
+  .pdd-team-card {
+    padding: 1rem 0.9rem;
+    border-radius: 10px;
+  }
+
+  .pdd-team-card__nome {
+    font-size: 0.88rem;
+  }
+
+  .pdd-team-card__papel {
+    font-size: 0.72rem;
+  }
+}
+
+/* Em telas estreitas a equipe vai para 1 coluna: com 2 colunas o texto do
+   cargo fica espremido e some atrás da barra inferior. */
+@media (max-width: 430px) {
+  .pdd-team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- responsivo: Xiaomi, Pocophone, iPhone SE ---------- */
+
+@media (max-width: 390px) {
+  .pdd-team-grid {
+    gap: 0.6rem;
+  }
+
+  .pdd-team-card {
+    padding: 0.8rem 0.7rem;
+  }
+
+  .pdd-team-card__nome {
+    font-size: 0.82rem;
+  }
+}

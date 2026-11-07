@@ -1,0 +1,413 @@
+.pda-shell {
+  --navy: #0d2b45;
+  --navy-soft: #123a5c;
+  --teal: #0f9b8e;
+  --teal-light: #00d4c2;
+  --teal-soft: #d7f0ea;
+  --bg: #dbe3ea;
+  --ink: #16293a;
+  --muted: #63788a;
+  --card: #ffffff;
+  --radius: 10px;
+  --danger: #e15b5b;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  text-align: left;
+  overflow: hidden;
+}
+
+.pda-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 43, 69, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 15;
+}
+
+.pda-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- header ---------- */
+
+/* Regra de ouro do painel: nenhum ancestral de um elemento `position: fixed`
+   (painel lateral, overlay, toast) pode ter `transform` no estado de repouso.
+   Qualquer transform — inclusive a matriz identidade que o Chrome calcula a
+   partir de `transform: none` dentro de um keyframe — vira containing block e
+   quebra o posicionamento desses elementos.
+   Por isso as animações de entrada usam `fill-mode: backwards` (o transform
+   vale só durante a animação) e o estado final fica no CSS. */
+
+.pda-header {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  background: var(--navy);
+  padding: 0.7rem 1.6rem;
+  opacity: 0;
+}
+
+.pda-shell--mounted .pda-header {
+  opacity: 1;
+  animation: pda-fade-down 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes pda-fade-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.pda-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.pda-brand__icon {
+  height: 2.1rem;
+  width: auto;
+}
+
+.pda-brand__logo {
+  height: 1.6rem;
+  width: auto;
+}
+
+.pda-header__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.pda-admin-wrap {
+  position: relative;
+}
+
+.pda-admin-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: none;
+  background: transparent;
+  color: var(--teal-light);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.pda-admin-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pda-admin-btn:active {
+  transform: scale(0.97);
+}
+
+.pda-admin-btn__icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--navy-soft);
+  display: grid;
+  place-items: center;
+  color: var(--teal-light);
+}
+
+.pda-admin-btn__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pda-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  min-width: 10.5rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 32px -10px rgba(13, 43, 69, 0.35);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transform-origin: top right;
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 30;
+}
+
+.pda-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.pda-menu__item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.55rem 0.8rem;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pda-menu__item:hover {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+/* ---------- corpo ---------- */
+
+.pda-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.pda-sidebar {
+  flex: 0 0 15.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem 1rem;
+  overflow-y: auto;
+  background: var(--navy);
+  opacity: 0;
+}
+
+.pda-shell--mounted .pda-sidebar {
+  opacity: 1;
+  animation: pda-fade-right 0.55s 0.08s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes pda-fade-right {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.pda-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pda-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.68rem 0.9rem;
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #b9c7d6;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
+}
+
+.pda-nav__icon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.pda-nav__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pda-nav__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: translateX(2px);
+}
+
+.pda-nav__item:hover .pda-nav__icon {
+  transform: scale(1.1);
+}
+
+.pda-nav__item.is-active {
+  background: #c7d0da;
+  color: var(--navy);
+}
+
+/* ---------- área principal ---------- */
+
+.pda-main {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.8rem 2.2rem 2.5rem;
+  opacity: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pda-main::-webkit-scrollbar {
+  display: none;
+}
+
+.pda-shell--mounted .pda-main {
+  opacity: 1;
+  animation: pda-fade-up 0.55s 0.14s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes pda-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.pda-page-enter {
+  animation: pda-page-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes pda-page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 880px) {
+  .pda-sidebar {
+    flex-basis: 12.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .pda-header {
+    padding: 0.6rem 1rem;
+    gap: 0.8rem;
+  }
+
+  .pda-brand__logo {
+    display: none;
+  }
+
+  .pda-body {
+    flex-direction: column;
+  }
+
+  .pda-sidebar {
+    order: 2;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0.4rem 0.3rem;
+    padding-bottom: env(safe-area-inset-bottom, 0.4rem);
+    box-shadow: 0 -6px 18px -12px rgba(0, 0, 0, 0.5);
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
+  }
+
+  .pda-shell--mounted .pda-sidebar {
+    animation: pda-fade-right 0.55s 0.08s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .pda-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 0.2rem;
+  }
+
+  .pda-nav__item {
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    padding: 0.4rem 0.3rem;
+    font-size: 0.68rem;
+    text-align: center;
+    border-radius: 12px;
+  }
+
+  .pda-nav__item:hover {
+    transform: none;
+  }
+
+  .pda-main {
+    padding: 1.3rem 1rem 1.6rem;
+  }
+}
+
+/* ---------- responsivo: Xiaomi, Pocophone, iPhone SE ---------- */
+
+@media (max-width: 390px) {
+  .pda-header {
+    padding: 0.5rem 0.7rem;
+    gap: 0.6rem;
+  }
+
+  .pda-brand__icon {
+    height: 1.8rem;
+  }
+
+  .pda-admin-btn {
+    font-size: 0.88rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .pda-admin-btn__icon {
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+
+  .pda-admin-btn__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pda-nav__item {
+    font-size: 0.62rem;
+    padding: 0.35rem 0.2rem;
+  }
+
+  .pda-nav__icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pda-main {
+    padding: 1rem 0.8rem 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pda-shell * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

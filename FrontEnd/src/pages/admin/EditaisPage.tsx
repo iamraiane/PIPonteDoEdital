@@ -1,0 +1,432 @@
+import { useEffect, useState } from 'react'
+import { DashIcon } from '../dashboard/Icons'
+import { getNotices, updateNotice, deleteNotice, type NoticeApi } from '../../services/notice'
+import { runNotificationJob } from '../../services/notification'
+import { getTokenPayload } from '../../services/user'
+import { Spinner } from '../../components/AppLoader'
+import './EditaisPage.css'
+
+type Edital = {
+  id: string
+  titulo: string
+  orgao: string
+  stateCode: string
+  description: string
+  themes: string[]
+  prazo: string
+  publicationDateISO: string
+}
+
+const TEMAS = [
+  'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
+  'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
+]
+
+function mapNoticeToEdital(n: NoticeApi): Edital {
+  // O "prazo" exibido/editado no admin é a publication_date (mesma data
+  // que o job de notificações usa como referência quando não há deadline_date).
+  const dateStr = n.publication_date
+  let prazo = 'Sem prazo'
+  if (dateStr) {
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
+    const d = iso
+      ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+      : new Date(dateStr)
+    prazo = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+  return {
+    id: String(n.id),
+    titulo: n.title,
+    orgao: n.state ?? 'Órgão não informado',
+    stateCode: n.state_code ?? '',
+    description: n.description ?? '',
+    themes: Array.isArray(n.themes) ? n.themes.filter((t) => t) : [],
+    prazo,
+    publicationDateISO: n.publication_date?.slice(0, 10) ?? '',
+  }
+}
+
+export default function EditaisPage() {
+  const [editais, setEditais] = useState<Edital[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [busca, setBusca] = useState('')
+
+  useEffect(() => {
+    const payload = getTokenPayload()
+    if (!payload?.id) return
+    getNotices(payload.id)
+      .then((data) => setEditais(data.map(mapNoticeToEdital)))
+      .catch(() => setError('Erro ao carregar editais'))
+      .finally(() => setLoading(false))
+  }, [])
+  const [menuAberto, setMenuAberto] = useState<string | null>(null)
+  const [editando, setEditando] = useState<Edital | null>(null)
+  const [excluindo, setExcluindo] = useState<Edital | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [testandoNotif, setTestandoNotif] = useState(false)
+  const [soSemTema, setSoSemTema] = useState(false)
+
+  const termo = busca.toLowerCase()
+  const filtrados = editais.filter(
+    (e) =>
+      (e.titulo.toLowerCase().includes(termo) || e.orgao.toLowerCase().includes(termo)) &&
+      (!soSemTema || e.themes.length === 0)
+  )
+
+  function avisar(msg: string, duracaoMs = 2200) {
+    setToast(msg)
+    setTimeout(() => setToast(null), duracaoMs)
+  }
+
+  async function testarNotificacoes() {
+    setTestandoNotif(true)
+    try {
+      const res = await runNotificationJob()
+      avisar(`${res.message} — confira o sino e o e-mail`, 5000)
+    } catch (err) {
+      console.error('Erro ao disparar notificações:', err)
+      avisar('Erro ao disparar notificações', 5000)
+    } finally {
+      setTestandoNotif(false)
+    }
+  }
+
+  function formatIso(dateStr: string): string {
+    if (!dateStr) return 'Sem prazo'
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
+    const d = iso
+      ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+      : new Date(dateStr)
+    if (isNaN(d.getTime())) return 'Sem prazo'
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  async function salvarEdicao(atualizado: Edital) {
+    try {
+      const publicationISO = atualizado.publicationDateISO.slice(0, 10)
+      const original = editais.find((e) => e.id === atualizado.id)
+      const themesChanged =
+        !original ||
+        original.themes.length !== atualizado.themes.length ||
+        original.themes.some((t, i) => t !== atualizado.themes[i])
+      await updateNotice(Number(atualizado.id), {
+        title: atualizado.titulo,
+        description: atualizado.description,
+        publication_date: publicationISO,
+        // Só envia themes se o admin alterou; sem isso o backend re-classifica sozinho.
+        ...(themesChanged ? { themes: atualizado.themes } : {}),
+      })
+      const next = {
+        ...atualizado,
+        publicationDateISO: publicationISO,
+        prazo: formatIso(publicationISO),
+      }
+      setEditais((prev) => prev.map((e) => (e.id === atualizado.id ? next : e)))
+      setEditando(null)
+      avisar('Edital atualizado com sucesso')
+    } catch (err) {
+      console.error('Erro ao atualizar edital:', err)
+      avisar('Erro ao atualizar edital')
+    }
+  }
+
+  async function excluir() {
+    if (!excluindo) return
+    try {
+      await deleteNotice(Number(excluindo.id))
+      setEditais((prev) => prev.filter((e) => e.id !== excluindo.id))
+      setExcluindo(null)
+      avisar('Edital excluído')
+    } catch (err) {
+      console.error('Erro ao excluir edital:', err)
+      avisar('Erro ao excluir edital')
+    }
+  }
+
+  return (
+    <div className="pda-editais-page">
+      <h1 className="pda-page-title">Gerenciamento de Editais</h1>
+      <p className="pda-page-sub">Acompanhe e edite os editais cadastrados</p>
+
+      <div className="pda-toolbar">
+        <label className="pda-search">
+          <span className="pda-search__glyph"><DashIcon name="search" /></span>
+          <input
+            type="text"
+            placeholder="Buscar por título ou órgão"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className={`pda-btn pda-toolbar__btn ${soSemTema ? 'is-active' : ''}`}
+          onClick={() => setSoSemTema(!soSemTema)}
+          title="Mostra só os editais que ainda não têm tema classificado"
+        >
+          Sem tema{soSemTema ? ' · on' : ''}
+        </button>
+        <button
+          type="button"
+          className="pda-btn pda-toolbar__btn"
+          onClick={testarNotificacoes}
+          disabled={testandoNotif}
+          title="Dispara agora o job de notificações/e-mails de prazo"
+        >
+          {testandoNotif ? 'Disparando...' : 'Testar notificações'}
+        </button>
+      </div>
+
+      {loading && <Spinner label="Carregando editais..." />}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {!loading && (
+      <div className="pda-table-wrap">
+        <table className="pda-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Estado</th>
+              <th>UF</th>
+              <th>Descrição</th>
+              <th>Temas</th>
+              <th>Prazo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtrados.length === 0 && (
+              <tr className="pda-empty-row">
+                <td colSpan={7}>Nenhum edital encontrado.</td>
+              </tr>
+            )}
+            {filtrados.map((edital, i) => (
+              <tr key={edital.id} className={menuAberto === edital.id ? 'pda-row--menu-open' : ''} style={{ animationDelay: `${i * 40}ms` }}>
+                <td data-label="Título">
+                  <div className="pda-cell">
+                    <span className="pda-cell-title">{edital.titulo}</span>
+                    <span className="pda-cell-sub">{edital.orgao}</span>
+                  </div>
+                </td>
+                <td data-label="Estado">{edital.orgao}</td>
+                <td data-label="UF">{edital.stateCode}</td>
+                <td data-label="Descrição"><span className="pda-cell-desc">{edital.description}</span></td>
+                <td data-label="Temas">
+                  {edital.themes.length === 0 ? (
+                    <span className="pda-theme-missing">Sem tema</span>
+                  ) : (
+                    <span className="pda-theme-list">{edital.themes.join(', ')}</span>
+                  )}
+                </td>
+                <td className="pda-cell-prazo" data-label="Prazo">{edital.prazo}</td>
+                <td className="pda-actions-cell" data-label="Ações">
+                  <button
+                    type="button"
+                    className="pda-dots-btn"
+                    aria-label="Ações"
+                    onClick={() => setMenuAberto(menuAberto === edital.id ? null : edital.id)}
+                  >
+                    <DashIcon name="dots" />
+                  </button>
+                  {menuAberto === edital.id && (
+                    <div className="pda-row-menu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setEditando(edital)
+                          setMenuAberto(null)
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="is-danger"
+                        onClick={() => {
+                          setExcluindo(edital)
+                          setMenuAberto(null)
+                        }}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      )}
+
+      {editando && (
+        <EditarEditalSidePanel
+          edital={editando}
+          onCancel={() => setEditando(null)}
+          onSave={salvarEdicao}
+        />
+      )}
+
+      {excluindo && (
+        <ConfirmarExclusaoModal
+          titulo={excluindo.titulo}
+          onCancel={() => setExcluindo(null)}
+          onConfirm={excluir}
+        />
+      )}
+
+      {toast && <div className="pda-toast">{toast}</div>}
+    </div>
+  )
+}
+
+function EditarEditalSidePanel({
+  edital,
+  onCancel,
+  onSave,
+}: {
+  edital: Edital
+  onCancel: () => void
+  onSave: (e: Edital) => void
+}) {
+  const [form, setForm] = useState<Edital>(edital)
+
+  return (
+    <>
+      <div className="pda-side-panel-overlay" onClick={onCancel} />
+      <div
+        className="pda-side-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Editar edital"
+      >
+        <div className="pda-side-panel__header">
+          <h2 className="pda-side-panel__title">Editar edital</h2>
+          <button
+            type="button"
+            className="pda-side-panel__close"
+            onClick={onCancel}
+            aria-label="Fechar"
+          >
+            <DashIcon name="close" />
+          </button>
+        </div>
+
+        <div className="pda-side-panel__body">
+          <div className="pda-field">
+            <label>Título</label>
+            <textarea
+              rows={1}
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+            />
+          </div>
+
+          <div className="pda-field">
+            <label>Estado</label>
+            <input
+              type="text"
+              value={form.orgao}
+              disabled
+              className="pda-field--readonly"
+            />
+          </div>
+
+          <div className="pda-field">
+            <label>UF</label>
+            <input
+              type="text"
+              value={form.stateCode}
+              disabled
+              className="pda-field--readonly"
+            />
+          </div>
+
+          <div className="pda-field">
+            <label>Descrição</label>
+            <textarea
+              rows={1}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+
+          <div className="pda-field">
+            <label>Temas (recomendação para os usuários)</label>
+            <div className="pda-theme-chips">
+              {TEMAS.map((tema) => {
+                const active = form.themes.includes(tema)
+                return (
+                  <button
+                    key={tema}
+                    type="button"
+                    className={`pda-theme-chip ${active ? 'is-active' : ''}`}
+                    aria-pressed={active}
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        themes: active
+                          ? form.themes.filter((t) => t !== tema)
+                          : [...form.themes, tema],
+                      })
+                    }
+                  >
+                    {tema}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="pda-field-hint">
+              Os temas definidos aqui têm prioridade sobre a classificação automática.
+            </p>
+          </div>
+
+          <div className="pda-field">
+            <label>Prazo</label>
+            <input
+              type="date"
+              value={form.publicationDateISO}
+              onChange={(e) => setForm({ ...form, publicationDateISO: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="pda-side-panel__footer">
+          <button type="button" className="pda-btn pda-btn--teal" onClick={() => onSave(form)}>
+            Salvar Alterações
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ConfirmarExclusaoModal({
+  titulo,
+  onCancel,
+  onConfirm,
+}: {
+  titulo: string
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div className="pda-overlay" onClick={onCancel}>
+      <div className="pda-modal pda-modal--dark" onClick={(e) => e.stopPropagation()}>
+        <h2 className="pda-modal-title">Tem certeza que deseja excluir esse edital?</h2>
+        <p className="pda-modal-note">{titulo}</p>
+        <div className="pda-modal-actions">
+          <button type="button" className="pda-btn pda-btn--outline" onClick={onCancel}>
+            Não
+          </button>
+          <button type="button" className="pda-btn pda-btn--teal" onClick={onConfirm}>
+            Sim
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

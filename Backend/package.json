@@ -1,0 +1,45 @@
+{
+  "name": "sistema_simulados_backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Repository for the construction of Fatec's integrator project. The project is about a website that is a filter of public notices and competitions",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed:classify": "node src/seeds/classifyNotices.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GustavoNori/PI_2026_BACKEND.git"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "Nori, Raiane e Mapeli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GustavoNori/PI_2026_BACKEND/issues"
+  },
+  "homepage": "https://github.com/GustavoNori/PI_2026_BACKEND#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mercadopago": "^3.6.1",
+    "mysql2": "^3.20.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.4",
+    "reflect-metadata": "^0.2.2",
+    "resend": "^6.24.0",
+    "stripe": "^22.0.0",
+    "typeorm": "^0.3.29"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

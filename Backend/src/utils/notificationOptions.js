@@ -1,0 +1,1 @@
+export const NOTIFICATION_OPTIONS = [60, 30, 20, 10, 7, 1, 0];

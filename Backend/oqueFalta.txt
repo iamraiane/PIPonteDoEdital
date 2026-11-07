@@ -1,0 +1,47 @@
+*Prioridades*
+
+-- Busca (aprender a como fazer a busca de modo que é digitado uma letra e com isso já vão aparecendo as opções) -- 10 dias
+- hospedagem  -- 10 dias
+- Esquecer senha -- 10 dias
+- Habilitar imagens -- 30 dias
+- conferir pagina admin( fazer as Controllers de numeros) -- NULL
+- Controllers de webScraping --  7 dias *Falta testar*
+- ajustar WebScraping para -- 7 dias{
+    - titulo
+    - descrição
+    - filtro
+    - data de publicação
+    - data de prazo
+    - link do edital
+}
+- Diferenciais entre planos -- 10 dias{
+    Gratuito{
+        - Pode salvar até 5 editais -- falta testar
+        - Feed basico( Busca simples por Categoria)
+    }
+    Premium{
+        - Filtros avançados{
+            - Prazo
+            - Categoria
+            - Estado
+        }
+        - calendario{
+            - Controllers de calendario -- 15 dias
+            - Notificações por email --  15 dias
+        }
+    }
+}
+- pensar se é melhor excluir ou desabilitar user -- 20 dias
+- despromover admin -- 20 dias
+
+Ideias
+- Ideia da Raiane q eu n entendi( DashBoard pro user) ---- NULL
+
+- CORS -- HOJE SEU ANIMAL -- feito
+
+
+
+
+Recursos de nuvem
+
+- Azure Functions para a parte de quando aparece um novo post

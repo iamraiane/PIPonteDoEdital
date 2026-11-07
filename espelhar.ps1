@@ -57,7 +57,9 @@ foreach ($repo in $repos) {
         Ok "push: tudo em dia"
     }
 
-    git subtree pull --prefix=$($repo.Prefixo) $repo.Path main
+    $sha = git -C $repo.Path rev-parse --short main
+    if ($LASTEXITCODE -ne 0) { Erro "rev-parse falhou em $($repo.Nome)"; exit 1 }
+    git subtree pull --prefix=$($repo.Prefixo) -m "Espelho de $($repo.Nome) @ $sha" $repo.Path main
     if ($LASTEXITCODE -ne 0) { Erro "subtree pull falhou em $($repo.Nome)"; exit 1 }
     Ok "espelhado em $($repo.Prefixo)/"
 }

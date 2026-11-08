@@ -35,6 +35,26 @@ npm run dev:front
 - **Frontend:** copie `.env.example` para `.env` e ajuste `VITE_API_URL`
 - **Backend:** crie um `.env` com `DB_*`, `PORT`, `JWT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `FRONTEND_URL` etc.
 
+## Docker
+
+Requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado.
+
+Comandos a partir da raiz do monorepo:
+
+```bash
+# Backend (API na porta 3000)
+docker build -t pi-backend ./Backend
+docker run --env-file Backend/.env -p 3000:3000 pi-backend
+
+# FrontEnd (nginx na porta 8080)
+docker build --build-arg VITE_API_URL=http://localhost:3000 -t pi-frontend ./FrontEnd
+docker run -p 8080:80 pi-frontend
+```
+
+- O `.env` **não entra na imagem** — é injetado em tempo de execução com `--env-file`
+- `VITE_API_URL` é passado no **build** (`--build-arg`) porque o Vite embute a URL nos arquivos
+- O `nginx.conf` faz o fallback de SPA (todas as rotas caem no `index.html`)
+
 ## Estrutura do projeto
 
 ```

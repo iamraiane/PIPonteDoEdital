@@ -42,7 +42,6 @@ PIPonteDoEdital/
 ├── FrontEnd/       # Portal React (deploy na Vercel)
 ├── Backend/        # API Express (deploy na Render)
 ├── webscrapping/   # Coletor Python (GitHub Actions, cron diário)
-├── Imagens/        # Capturas de tela do projeto
 ├── espelhar.ps1    # Sincroniza os repos antigos com este monorepo
 └── package.json    # Scripts dev (concurrently)
 ```

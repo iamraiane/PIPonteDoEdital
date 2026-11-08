@@ -15,6 +15,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Capturas de tela (nao versionar)
+Imagens/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

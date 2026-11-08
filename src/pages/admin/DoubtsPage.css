@@ -1,3 +1,12 @@
+.pda-doubts-page .pda-toolbar {
+  gap: 0.6rem;
+  justify-content: flex-start;
+}
+
+.pda-doubts-page .pda-toolbar__btn {
+  width: auto;
+}
+
 .pda-doubts-list {
   display: flex;
   flex-direction: column;
@@ -110,8 +119,34 @@
   white-space: pre-line;
 }
 
-.pda-doubt-card__reply-btn {
+/* Outline do admin é branco (feito para painéis escuros) — no card claro
+   precisamos de navy/teal para o botão ficar visível. */
+.pda-doubt-card .pda-btn--outline {
+  border-color: rgba(13, 43, 69, 0.35);
+  color: var(--navy);
+}
+
+.pda-doubt-card .pda-btn--outline:hover {
+  background: rgba(15, 155, 142, 0.08);
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.pda-doubt-card .pda-doubt-card__reply-btn {
   margin-top: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.85rem;
+  background: rgba(15, 155, 142, 0.08);
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+}
+
+.pda-doubt-card .pda-doubt-card__reply-btn:hover {
+  background: rgba(15, 155, 142, 0.16);
 }
 
 .pda-doubt-card__reply {
@@ -119,6 +154,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  background: rgba(15, 155, 142, 0.05);
+  border: 1px solid rgba(15, 155, 142, 0.3);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+.pda-doubt-card__reply-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--teal);
 }
 
 .pda-doubt-card__reply textarea {
@@ -143,6 +188,12 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.pda-doubt-card__reply-actions .pda-btn {
+  width: auto;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 480px) {

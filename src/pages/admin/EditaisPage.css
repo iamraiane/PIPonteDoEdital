@@ -19,6 +19,7 @@
   align-items: center;
   flex: 1;
   max-width: 26rem;
+  margin-right: auto;
 }
 
 .pda-search input {
@@ -39,7 +40,7 @@
   color: var(--muted);
 }
 
-.pda-toolbar__btn {
+.pda-toolbar .pda-toolbar__btn {
   width: auto;
   padding: 0.55rem 1.2rem;
   background: transparent;

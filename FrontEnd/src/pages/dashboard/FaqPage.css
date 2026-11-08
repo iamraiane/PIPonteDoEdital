@@ -331,6 +331,155 @@
   line-height: 1.5;
 }
 
+/* ---------- dúvidas da comunidade ---------- */
+
+.pdd-faq-doubts {
+  margin-top: 2.2rem;
+}
+
+.pdd-faq-doubts__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.pdd-faq-doubts__sub {
+  margin: 0.35rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.pdd-faq-doubts__empty {
+  margin: 0;
+  background: var(--teal-soft);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.pdd-faq-doubts__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.pdd-faq-doubts__item {
+  background: #fff;
+  border: 1px solid rgba(13, 43, 69, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: pdd-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pdd-faq-doubts__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.pdd-faq-doubts__author {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--navy, #0d2b45);
+}
+
+.pdd-faq-doubts__date {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.pdd-faq-doubts__badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  background: #fdf0e3;
+  color: #b97a1d;
+}
+
+.pdd-faq-doubts__badge.is-answered {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.pdd-faq-doubts__content {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-line;
+}
+
+.pdd-faq-doubts__answers {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pdd-faq-doubts__answer {
+  background: var(--teal-soft);
+  border-radius: 9px;
+  padding: 0.7rem 0.9rem;
+}
+
+.pdd-faq-doubts__answer-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pdd-faq-doubts__answer-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+}
+
+.pdd-faq-doubts__answer-content {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-line;
+}
+
+.pdd-faq-modal__error {
+  margin: -0.4rem 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ff9b9b;
+  text-align: center;
+}
+
+@media (max-width: 390px) {
+  .pdd-faq-doubts__item {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .pdd-faq-doubts__badge {
+    margin-left: 0;
+  }
+
+  .pdd-faq-doubts__title {
+    font-size: 1.05rem;
+  }
+}
+
 /* ---------- responsivo: Xiaomi, Pocophone, iPhone SE ---------- */
 
 @media (max-width: 390px) {

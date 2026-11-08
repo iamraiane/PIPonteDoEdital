@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { DashIcon } from './Icons'
+import { getDoubts, createDoubt, type Doubt } from '../../services/doubt'
+import { timeAgo } from '../../utils/timeAgo'
 import './FaqPage.css'
 
 const FAQS = [
@@ -27,6 +29,16 @@ export default function FaqPage() {
   const [assunto, setAssunto] = useState('')
   const [descricao, setDescricao] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [error, setError] = useState('')
+  const [doubts, setDoubts] = useState<Doubt[]>([])
+  const [loadingDoubts, setLoadingDoubts] = useState(true)
+
+  useEffect(() => {
+    getDoubts()
+      .then(setDoubts)
+      .catch(() => {})
+      .finally(() => setLoadingDoubts(false))
+  }, [])
 
   useEffect(() => {
     if (!modalOpen) return
@@ -37,29 +49,44 @@ export default function FaqPage() {
     return () => document.removeEventListener('keydown', onKey)
   }, [modalOpen])
 
+  function refreshDoubts() {
+    getDoubts().then(setDoubts).catch(() => {})
+  }
+
   function openModal() {
     setModalOpen(true)
     setStatus('idle')
+    setError('')
   }
 
   function closeModal() {
     setModalOpen(false)
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!assunto.trim() || !descricao.trim()) return
     setStatus('sending')
-    window.setTimeout(() => {
+    setError('')
+    try {
+      await createDoubt(`${assunto.trim()}\n\n${descricao.trim()}`)
       setStatus('sent')
+      refreshDoubts()
       window.setTimeout(() => {
         setModalOpen(false)
         setAssunto('')
         setDescricao('')
         setStatus('idle')
       }, 1100)
-    }, 700)
+    } catch (err) {
+      setStatus('idle')
+      setError(err instanceof Error ? err.message : 'Não foi possível enviar. Tente novamente.')
+    }
   }
+
+  const sortedDoubts = [...doubts].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
 
   return (
     <div className="pdd-faq-page">
@@ -103,6 +130,60 @@ export default function FaqPage() {
         })}
       </div>
 
+      <section className="pdd-faq-doubts">
+        <h2 className="pdd-faq-doubts__title">Dúvidas da comunidade</h2>
+        <p className="pdd-faq-doubts__sub">
+          Veja o que outros usuários perguntaram e as respostas da equipe.
+        </p>
+
+        {loadingDoubts ? (
+          <p className="pdd-faq-doubts__empty">Carregando…</p>
+        ) : sortedDoubts.length === 0 ? (
+          <p className="pdd-faq-doubts__empty">
+            Nenhuma dúvida ainda. Seja o primeiro a perguntar!
+          </p>
+        ) : (
+          <ul className="pdd-faq-doubts__list">
+            {sortedDoubts.map((d, i) => {
+              const answered = d.answers.length > 0
+              return (
+                <li
+                  key={d.id}
+                  className="pdd-faq-doubts__item"
+                  style={{ animationDelay: `${i * 70}ms` }}
+                >
+                  <div className="pdd-faq-doubts__head">
+                    <span className="pdd-faq-doubts__author">{d.user?.name ?? 'Usuário'}</span>
+                    <span className="pdd-faq-doubts__date">{timeAgo(d.created_at)}</span>
+                    <span
+                      className={`pdd-faq-doubts__badge ${answered ? 'is-answered' : ''}`}
+                    >
+                      {answered ? 'Respondida' : 'Aguardando resposta'}
+                    </span>
+                  </div>
+
+                  <p className="pdd-faq-doubts__content">{d.content}</p>
+
+                  {answered && (
+                    <ul className="pdd-faq-doubts__answers">
+                      {d.answers.map((a) => (
+                        <li key={a.id} className="pdd-faq-doubts__answer">
+                          <div className="pdd-faq-doubts__answer-head">
+                            <span className="pdd-faq-doubts__answer-label">Equipe</span>
+                            <span className="pdd-faq-doubts__date">{timeAgo(a.created_at)}</span>
+                          </div>
+                          <p className="pdd-faq-doubts__answer-content">{a.content}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
       {createPortal(
         <div className={`pdd-faq-modal-backdrop ${modalOpen ? 'is-open' : ''}`} onClick={closeModal}>
           <div
@@ -139,6 +220,8 @@ export default function FaqPage() {
                     rows={4}
                   />
                 </label>
+
+                {error && <p className="pdd-faq-modal__error">{error}</p>}
 
                 <div className="pdd-faq-modal__actions">
                   <button

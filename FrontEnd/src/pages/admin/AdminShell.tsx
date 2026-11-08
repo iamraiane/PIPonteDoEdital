@@ -4,12 +4,13 @@ import logoPonte from '../../assets/logo-ponte.png'
 import { DashIcon } from '../dashboard/Icons'
 import './AdminShell.css'
 
-export type AdminPageKey = 'overview' | 'editais' | 'usuarios'
+export type AdminPageKey = 'overview' | 'editais' | 'usuarios' | 'duvidas'
 
 const NAV_ITEMS: { key: AdminPageKey; label: string; icon: string }[] = [
   { key: 'overview', label: 'Visão Geral', icon: 'home' },
   { key: 'editais', label: 'Editais', icon: 'file' },
   { key: 'usuarios', label: 'Usuários', icon: 'people' },
+  { key: 'duvidas', label: 'Dúvidas', icon: 'question' },
 ]
 
 export default function AdminShell({

@@ -6,6 +6,7 @@ import AppLoader from "../components/AppLoader";
 import { PLANS } from "../data/plans";
 import "./CommercialPage.css";
 const STATS = [
+  { value: "15.500+", label: "editais monitorados" },
   { value: "27", label: "estados e DF cobertos" },
   { value: "500+", label: "usuários cadastrados" },
   { value: "600+", label: "prazos agendados" },

@@ -1,6 +1,19 @@
 import { AppDataSource } from "../../data-source.js";
 import { DoubtEntity } from "../entities/Doubt.js";
 
+function publicUser(user) {
+    if (!user) return null;
+    return { id: user.id, name: user.name };
+}
+
+function serializeDoubt(doubt) {
+    return { ...doubt, user: publicUser(doubt.user) };
+}
+
+function canModify(req, doubt) {
+    return req.user.id === doubt.user_id || req.user.role === "admin";
+}
+
 export class DoubtController {
 
     async createDoubt(req, res) {
@@ -30,7 +43,7 @@ export class DoubtController {
 
         try {
             const doubts = await repo.find({ relations: ["user", "answers"] });
-            return res.json(doubts);
+            return res.json(doubts.map(serializeDoubt));
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error" });
@@ -53,7 +66,7 @@ export class DoubtController {
                 return res.status(404).json({ message: "Doubt not found" });
             }
 
-            return res.json(doubt);
+            return res.json(serializeDoubt(doubt));
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error" });
@@ -70,6 +83,10 @@ export class DoubtController {
 
             if (!doubtToUpdate) {
                 return res.status(404).json({ message: "Doubt not found" });
+            }
+
+            if (!canModify(req, doubtToUpdate)) {
+                return res.status(403).json({ message: "Acesso negado!" });
             }
 
             if (content) doubtToUpdate.content = content;
@@ -94,6 +111,10 @@ export class DoubtController {
 
             if (!doubtToDelete) {
                 return res.status(404).json({ message: "Doubt not found" });
+            }
+
+            if (!canModify(req, doubtToDelete)) {
+                return res.status(403).json({ message: "Acesso negado!" });
             }
 
             await repo.remove(doubtToDelete);

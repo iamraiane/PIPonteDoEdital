@@ -48,6 +48,10 @@ foreach ($repo in $repos) {
     git -C $repo.Path fetch origin
     if ($LASTEXITCODE -ne 0) { Erro "git fetch falhou em $($repo.Path)"; exit 1 }
 
+    # traz commits subidos no GitHub (ex.: pelo Gustavo) pro main local
+    git -C $repo.Path merge --ff-only origin/main
+    if ($LASTEXITCODE -ne 0) { Erro "main de $($repo.Nome) divergiu de origin/main - resolva o pull manualmente em $($repo.Path)"; exit 1 }
+
     $naoEnviados = [int](git -C $repo.Path rev-list --count "origin/main..main")
     if ($naoEnviados -gt 0) {
         Ok "$naoEnviados commit(s) local(is) nao enviado(s) -> push (deploy dispara)"

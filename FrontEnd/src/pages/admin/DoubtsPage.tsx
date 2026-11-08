@@ -127,7 +127,14 @@ export default function DoubtsPage() {
 
                 {respondendo === d.id ? (
                   <div className="pda-doubt-card__reply">
+                    <label
+                      className="pda-doubt-card__reply-label"
+                      htmlFor={`doubt-reply-${d.id}`}
+                    >
+                      Sua resposta
+                    </label>
                     <textarea
+                      id={`doubt-reply-${d.id}`}
                       value={resposta}
                       onChange={(e) => setResposta(e.target.value)}
                       rows={3}
@@ -158,7 +165,7 @@ export default function DoubtsPage() {
                 ) : (
                   <button
                     type="button"
-                    className="pda-btn pda-btn--outline pda-doubt-card__reply-btn"
+                    className="pda-btn pda-doubt-card__reply-btn"
                     onClick={() => {
                       setRespondendo(d.id)
                       setResposta('')

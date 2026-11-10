@@ -2,7 +2,7 @@
 #
 # Uso:  .\espelhar.ps1
 #
-# O que faz, para cada repo (FrontEnd, Backend, webscrapping):
+# O que faz, para cada repo (Web, Back, webscrapping):
 #   1. git push no repo antigo  -> dispara deploy (Vercel / Render)
 #   2. git subtree pull         -> traz os commits pro repo novo (espelho)
 #   3. git push no repo novo    -> GitHub do PIPonteDoEdital atualizado
@@ -15,8 +15,8 @@ $monorepo  = 'C:\Users\USER\Desktop\PIPonteEdital'
 $raizAntiga = 'C:\Users\USER\Desktop\PonteEdital'
 
 $repos = @(
-    @{ Nome = 'FrontEnd';     Path = "$raizAntiga\FrontEnd";     Prefixo = 'FrontEnd' },
-    @{ Nome = 'Backend';      Path = "$raizAntiga\Backend";      Prefixo = 'Backend' },
+    @{ Nome = 'Web';          Path = "$raizAntiga\Web";          Prefixo = 'Web' },
+    @{ Nome = 'Back';         Path = "$raizAntiga\Back";         Prefixo = 'Back' },
     @{ Nome = 'webscrapping'; Path = "$raizAntiga\webscrapping"; Prefixo = 'webscrapping' }
 )
 

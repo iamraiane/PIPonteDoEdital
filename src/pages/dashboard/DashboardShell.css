@@ -511,6 +511,26 @@ html, body {
   text-decoration: underline;
 }
 
+.pdd-notif-panel__more {
+  border: none;
+  background: transparent;
+  margin-top: 0.15rem;
+  padding: 0.55rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--teal-light);
+  cursor: pointer;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.15s ease;
+}
+
+.pdd-notif-panel__more:hover {
+  background: rgba(255, 255, 255, 0.06);
+  text-decoration: underline;
+}
+
 .pdd-notif-panel__mark-all {
   border: none;
   background: transparent;

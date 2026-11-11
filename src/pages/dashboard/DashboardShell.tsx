@@ -374,7 +374,7 @@ export default function DashboardShell({
               ) : notifications.length === 0 ? (
                 <p className="pdd-notif-panel__empty">Nenhuma notificação</p>
               ) : (
-                notifications.map((n, i) => (
+                notifications.slice(0, 5).map((n, i) => (
                   <button
                     key={n.id}
                     type="button"
@@ -387,6 +387,19 @@ export default function DashboardShell({
                     <span className="pdd-notif-panel__item-time">{timeAgo(n.created_at)}</span>
                   </button>
                 ))
+              )}
+
+              {notifications.length > 5 && (
+                <button
+                  type="button"
+                  className="pdd-notif-panel__more"
+                  onClick={() => {
+                    setNotifOpen(false)
+                    onNavigate('notifications')
+                  }}
+                >
+                  Mostrar mais
+                </button>
               )}
             </div>
           </div>

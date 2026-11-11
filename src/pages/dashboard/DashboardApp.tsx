@@ -75,6 +75,7 @@ export default function DashboardApp({
     avatarUrl: null,
   })
   const [savedProfile, setSavedProfile] = useState<ProfileData>(profile)
+  const [pendingAvatar, setPendingAvatar] = useState<{ file: File; previewUrl: string } | null>(null)
   const [unsavedOpen, setUnsavedOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
 
@@ -97,15 +98,20 @@ export default function DashboardApp({
       .catch(console.error)
   }, [userId])
 
-  async function handleAvatarUpload(file: File): Promise<string> {
-    if (!userId) throw new Error('Usuário não identificado')
-    const { avatar_url } = await uploadAvatar(userId, file)
-    const url = avatar_url ?? null
-    if (url) {
-      setProfile((prev) => ({ ...prev, avatarUrl: url }))
-      setSavedProfile((prev) => ({ ...prev, avatarUrl: url }))
-    }
-    return url ?? ''
+  function clearPendingAvatar() {
+    setPendingAvatar((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl)
+      return null
+    })
+  }
+
+  function handleAvatarSelect(file: File) {
+    const previewUrl = URL.createObjectURL(file)
+    setPendingAvatar((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl)
+      return { file, previewUrl }
+    })
+    setProfile((prev) => ({ ...prev, avatarUrl: previewUrl }))
   }
 
   const pathSegment = location.pathname.split('/')[2] || 'feed'
@@ -115,12 +121,21 @@ export default function DashboardApp({
   async function handleSaveProfile() {
     if (!userId) return
     const snapshot = profile
+    let avatarUrl = snapshot.avatarUrl
+    if (pendingAvatar) {
+      const { avatar_url } = await uploadAvatar(userId, pendingAvatar.file)
+      avatarUrl = avatar_url ?? snapshot.avatarUrl
+    }
     await updateUser(userId, {
       name: snapshot.nome,
       state_code: snapshot.estado,
       preferences: snapshot.interesses,
     })
-    setSavedProfile(snapshot)
+    clearPendingAvatar()
+    setSavedProfile({ ...snapshot, avatarUrl })
+    if (avatarUrl !== snapshot.avatarUrl) {
+      setProfile((prev) => ({ ...prev, avatarUrl }))
+    }
   }
 
   function runGuarded(action: () => void) {
@@ -147,6 +162,7 @@ export default function DashboardApp({
   }
 
   function handleDiscardChanges() {
+    clearPendingAvatar()
     setProfile(savedProfile)
     setUnsavedOpen(false)
     const action = pendingAction
@@ -199,7 +215,7 @@ export default function DashboardApp({
           <Route path="plans" element={<PlansPage hasPremium={hasPremium} />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="about" element={<AboutPage />} />
-          <Route path="profile" element={<ProfilePage profile={profile} onChange={setProfile} onSave={handleSaveProfile} onAvatarUpload={handleAvatarUpload} userActive={userActive} />} />
+          <Route path="profile" element={<ProfilePage profile={profile} onChange={setProfile} onSave={handleSaveProfile} onAvatarSelect={handleAvatarSelect} avatarPending={!!pendingAvatar} userActive={userActive} />} />
           <Route path="notifications" element={<NotificationsPage onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
         </Routes>
       </DashboardShell>

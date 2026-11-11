@@ -139,8 +139,10 @@ export default function DoubtsPage() {
                       onChange={(e) => setResposta(e.target.value)}
                       rows={3}
                       placeholder="Escreva sua resposta..."
+                      maxLength={1000}
                       autoFocus
                     />
+                    <span className="pda-counter">{resposta.length} / 1000</span>
                     <div className="pda-doubt-card__reply-actions">
                       <button
                         type="button"

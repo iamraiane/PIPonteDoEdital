@@ -184,6 +184,13 @@
   border-color: var(--teal);
 }
 
+.pda-counter {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .pda-doubt-card__reply-actions {
   display: flex;
   justify-content: flex-end;

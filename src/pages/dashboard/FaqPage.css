@@ -237,6 +237,13 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+.pdd-faq-modal__counter {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
 .pdd-faq-modal__actions {
   display: flex;
   justify-content: center;

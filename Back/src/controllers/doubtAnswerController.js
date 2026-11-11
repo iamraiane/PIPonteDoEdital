@@ -1,6 +1,8 @@
 import { AppDataSource } from "../../data-source.js";
 import { DoubtAnswerEntity } from "../entities/DoubtAnswer.js";
 
+const ANSWER_CONTENT_MAX = 1000;
+
 export class DoubtAnswerController {
 
     async createDoubtAnswer(req, res) {
@@ -9,6 +11,10 @@ export class DoubtAnswerController {
                 const { doubt_id } = req.params;
         const { content } = req.body;
         const userId = req.user.id;
+
+        if (typeof content === "string" && content.length > ANSWER_CONTENT_MAX) {
+            return res.status(400).json({ message: "A resposta deve ter no máximo 1000 caracteres" });
+        }
 
         try {
             const doubtAnswer = repo.create({
@@ -82,6 +88,10 @@ export class DoubtAnswerController {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
         const { id } = req.params;
         const { content } = req.body;
+
+        if (typeof content === "string" && content.length > ANSWER_CONTENT_MAX) {
+            return res.status(400).json({ message: "A resposta deve ter no máximo 1000 caracteres" });
+        }
 
         try {
             const doubtAnswerToUpdate = await repo.findOneBy({ id: parseInt(id) });

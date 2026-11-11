@@ -1,6 +1,8 @@
 import { AppDataSource } from "../../data-source.js";
 import { DoubtEntity } from "../entities/Doubt.js";
 
+const DOUBT_CONTENT_MAX = 562; // assunto (60) + "\n\n" (2) + descricao (500)
+
 function publicUser(user) {
     if (!user) return null;
     return { id: user.id, name: user.name };
@@ -21,6 +23,10 @@ export class DoubtController {
         
         const { content, status } = req.body;
         const userId = req.user.id; // Supondo que o ID do usuário esteja disponível em req.user
+
+        if (typeof content === "string" && content.length > DOUBT_CONTENT_MAX) {
+            return res.status(400).json({ message: "A dúvida deve ter no máximo 562 caracteres (assunto até 60 e descrição até 500)" });
+        }
 
         try {
             const doubt = repo.create({
@@ -77,6 +83,10 @@ export class DoubtController {
 
         const { id } = req.params;
         const { content, status } = req.body;
+
+        if (typeof content === "string" && content.length > DOUBT_CONTENT_MAX) {
+            return res.status(400).json({ message: "A dúvida deve ter no máximo 562 caracteres (assunto até 60 e descrição até 500)" });
+        }
 
         try {
             const doubtToUpdate = await repo.findOneBy({ id: parseInt(id) });

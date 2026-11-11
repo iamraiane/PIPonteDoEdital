@@ -28,6 +28,7 @@ export const DoubtAnswerEntity = new EntitySchema({
       type: "many-to-one",
       target: "Doubt",
       joinColumn: { name: "doubt_id" },
+      onDelete: "CASCADE",
     },
     user: {
       type: "many-to-one",

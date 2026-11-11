@@ -1,5 +1,6 @@
 import { AppDataSource } from "../../data-source.js";
 import { DoubtEntity } from "../entities/Doubt.js";
+import { DoubtAnswerEntity } from "../entities/DoubtAnswer.js";
 
 const DOUBT_CONTENT_MAX = 562; // assunto (60) + "\n\n" (2) + descricao (500)
 
@@ -100,7 +101,7 @@ export class DoubtController {
             }
 
             if (content) doubtToUpdate.content = content;
-            if (status) doubtToUpdate.status = status;
+            if (status && req.user.role === "admin") doubtToUpdate.status = status;
 
             await repo.save(doubtToUpdate);
 
@@ -126,6 +127,9 @@ export class DoubtController {
             if (!canModify(req, doubtToDelete)) {
                 return res.status(403).json({ message: "Acesso negado!" });
             }
+
+            const answerRepo = AppDataSource.getRepository(DoubtAnswerEntity);
+            await answerRepo.delete({ doubt_id: doubtToDelete.id });
 
             await repo.remove(doubtToDelete);
 

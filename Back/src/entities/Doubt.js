@@ -34,6 +34,7 @@ export const DoubtEntity = new EntitySchema({
       type: "one-to-many",
       target: "DoubtAnswer",
       inverseSide: "doubt",
+      onDelete: "CASCADE",
     },
   },
 });

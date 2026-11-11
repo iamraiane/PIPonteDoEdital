@@ -36,6 +36,10 @@ python app.py
 
 `app.py` executa todos os coletores em sequência (regiões e estados).
 
+uvicorn api:app --reload = serve para deixar o servidor local ligado
+
+cloudflared tunnel --url http://localhost:8000 = para o servidor "local" rodar na web para funcionar com meu back que está rodando na web
+
 ## Variáveis de ambiente (`.env`)
 
 | Variável | Descrição |

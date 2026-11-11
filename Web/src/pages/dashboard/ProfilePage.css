@@ -122,25 +122,6 @@
   font-weight: 600;
 }
 
-.pdd-profile-avatar.is-uploading {
-  cursor: default;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-.pdd-profile-avatar__spinner {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
-  animation: pdd-avatar-spin 0.7s linear infinite;
-}
-
-@keyframes pdd-avatar-spin {
-  to { transform: rotate(360deg); }
-}
-
 .pdd-profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

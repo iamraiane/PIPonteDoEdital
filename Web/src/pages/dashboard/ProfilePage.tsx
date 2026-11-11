@@ -85,13 +85,15 @@ export default function ProfilePage({
   profile,
   onChange,
   onSave,
-  onAvatarUpload,
+  onAvatarSelect,
+  avatarPending = false,
   userActive = true,
 }: {
   profile: ProfileData
   onChange: (next: ProfileData) => void
   onSave: () => Promise<void>
-  onAvatarUpload: (file: File) => Promise<string>
+  onAvatarSelect: (file: File) => void
+  avatarPending?: boolean
   userActive?: boolean
 }) {
   const [saved, setSaved] = useState(false)
@@ -104,9 +106,7 @@ export default function ProfilePage({
   const [newEmail, setNewEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [gcalAvailable] = useState(isGoogleCalendarAvailable)
   const [gcalStatus, setGcalStatus] = useState<GcalStatus>(getGoogleCalendarStatus)
   const [gcalBusy, setGcalBusy] = useState(false)
@@ -150,7 +150,7 @@ export default function ProfilePage({
   const AVATAR_TIPOS = ['image/jpeg', 'image/png', 'image/webp']
   const AVATAR_TAMANHO_MAX = 2 * 1024 * 1024
 
-  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
+  function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const input = e.target
     const file = input.files?.[0]
     if (!file) return
@@ -166,22 +166,7 @@ export default function ProfilePage({
       return
     }
 
-    const preview = URL.createObjectURL(file)
-    setAvatarPreview(preview)
-    setAvatarUploading(true)
-    try {
-      await onAvatarUpload(file)
-    } catch (err: unknown) {
-      setAvatarError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível enviar a foto. Tente novamente.',
-      )
-    } finally {
-      URL.revokeObjectURL(preview)
-      setAvatarPreview(null)
-      setAvatarUploading(false)
-    }
+    onAvatarSelect(file)
   }
 
   async function handleSave() {
@@ -198,8 +183,16 @@ export default function ProfilePage({
       ])
       setSaved(true)
       setNameError(null)
+      setAvatarError(null)
       window.setTimeout(() => setSaved(false), 2200)
-    } catch {
+    } catch (err: unknown) {
+      if (avatarPending && err instanceof ApiError) {
+        setAvatarError(
+          err.status === 400 || err.status === 413 || err.status === 415
+            ? err.message
+            : 'Não foi possível enviar a foto. Tente novamente.',
+        )
+      }
       // falha ao gravar: o estado 'saving' é liberado no finally
     } finally {
       setSaving(false)
@@ -323,22 +316,17 @@ export default function ProfilePage({
         <div className="pdd-profile-photo-row">
           <button
             type="button"
-            className={`pdd-profile-avatar ${avatarUploading ? 'is-uploading' : ''}`}
+            className="pdd-profile-avatar"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Alterar foto de perfil"
-            disabled={avatarUploading}
           >
-            {avatarPreview ?? profile.avatarUrl ? (
-              <img src={(avatarPreview ?? profile.avatarUrl) as string} alt="" />
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" />
             ) : (
               <DashAvatar size={64} seed={2} />
             )}
             <span className="pdd-profile-avatar__badge">
-              {avatarUploading ? (
-                <span className="pdd-profile-avatar__spinner" />
-              ) : (
-                <DashIcon name="camera" />
-              )}
+              <DashIcon name="camera" />
             </span>
           </button>
           <input
@@ -347,12 +335,11 @@ export default function ProfilePage({
             accept="image/png, image/jpeg, image/webp"
             className="pdd-profile-photo-input"
             onChange={handleFile}
-            disabled={avatarUploading}
           />
           <div>
             <p className="pdd-profile-photo-label">Foto de Perfil</p>
             <p className="pdd-profile-photo-hint">
-              {avatarUploading ? 'Enviando foto…' : 'JPG, PNG ou WEBP · até 2 MB'}
+              {avatarPending ? 'Foto selecionada — clique em "Salvar alterações"' : 'JPG, PNG ou WEBP · até 2 MB'}
             </p>
             {avatarError && <p className="pdd-profile-photo-error">{avatarError}</p>}
           </div>

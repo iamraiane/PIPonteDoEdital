@@ -23,6 +23,9 @@ const FAQS = [
   },
 ]
 
+const ASSUNTO_MAX = 60
+const DESCRICAO_MAX = 500
+
 export default function FaqPage() {
   const [openId, setOpenId] = useState<string | null>('1')
   const [modalOpen, setModalOpen] = useState(false)
@@ -207,8 +210,12 @@ export default function FaqPage() {
                     value={assunto}
                     onChange={(e) => setAssunto(e.target.value)}
                     placeholder="Ex: Problema ao salvar um edital"
+                    maxLength={ASSUNTO_MAX}
                     autoFocus
                   />
+                  <span className="pdd-faq-modal__counter">
+                    {assunto.length} / {ASSUNTO_MAX}
+                  </span>
                 </label>
 
                 <label className="pdd-faq-modal__field">
@@ -218,7 +225,11 @@ export default function FaqPage() {
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Conte com detalhes o que você está vivenciando"
                     rows={4}
+                    maxLength={DESCRICAO_MAX}
                   />
+                  <span className="pdd-faq-modal__counter">
+                    {descricao.length} / {DESCRICAO_MAX}
+                  </span>
                 </label>
 
                 {error && <p className="pdd-faq-modal__error">{error}</p>}

@@ -250,6 +250,34 @@
   margin-top: 0.4rem;
 }
 
+.pdd-faq-modal__actions--split {
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.pdd-faq-modal__cancel {
+  border: 1.5px solid rgba(0, 212, 194, 0.35);
+  background: transparent;
+  color: var(--teal-light);
+  border-radius: 8px;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.pdd-faq-modal__cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--teal-light);
+}
+
+.pdd-faq-modal__cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .pdd-faq-modal__submit {
   position: relative;
   min-width: 9rem;
@@ -420,6 +448,42 @@
   color: var(--teal);
 }
 
+.pdd-faq-doubts__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdd-faq-doubts__action {
+  border: none;
+  background: transparent;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: inherit;
+  color: var(--teal);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.pdd-faq-doubts__action:hover:not(:disabled) {
+  background: rgba(15, 155, 142, 0.1);
+}
+
+.pdd-faq-doubts__action:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pdd-faq-doubts__action--danger {
+  color: #c0392b;
+}
+
+.pdd-faq-doubts__action--danger:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 0.1);
+}
+
 .pdd-faq-doubts__content {
   margin: 0.55rem 0 0;
   font-size: 0.9rem;
@@ -480,6 +544,10 @@
 
   .pdd-faq-doubts__badge {
     margin-left: 0;
+  }
+
+  .pdd-faq-doubts__actions {
+    margin-left: auto;
   }
 
   .pdd-faq-doubts__title {

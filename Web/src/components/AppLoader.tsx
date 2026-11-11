@@ -2,6 +2,9 @@ import logoNome from '../assets/logo-nome.png'
 import logoPonte from '../assets/logo-ponte.png'
 import './AppLoader.css'
 
+/**
+ * Indicador de carregamento (spinner) acessível com rótulo opcional.
+ */
 export function Spinner({ label }: { label?: string }) {
   return (
     <span className="pl-spinner-wrap">
@@ -11,6 +14,10 @@ export function Spinner({ label }: { label?: string }) {
   )
 }
 
+/**
+ * Tela de carregamento completa com marca, spinner e mensagem opcional.
+ * Usada enquanto a sessão do usuário é verificada.
+ */
 export default function AppLoader({
   message = 'Carregando...',
   showBrand = true,

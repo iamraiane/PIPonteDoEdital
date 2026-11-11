@@ -7,17 +7,20 @@ import { register, updateUser, getTokenPayload, resendVerificationEmail } from '
 import { sanitizeInput, sanitizeName, sanitizeEmail, validateName, validateEmail, validatePassword, sanitizeCpf, formatCpf, validateCpf } from '../utils/validation'
 import './SignupFlow.css'
 
+/** Siglas das unidades federativas brasileiras disponíveis no select de estado. */
 const ESTADOS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
   'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
   'SP', 'SE', 'TO',
 ]
 
+/** Áreas de interesse que o usuário pode selecionar no passo 2 do cadastro. */
 const INTERESSES = [
   'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
   'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
 ]
 
+/** Mapeia cada interesse para o identificador do ícone correspondente. */
 const ICONE_POR_INTERESSE: Record<string, string> = {
   Tecnologia: 'tech',
   Educação: 'educacao',
@@ -29,12 +32,14 @@ const ICONE_POR_INTERESSE: Record<string, string> = {
   Engenharia: 'engenharia',
 }
 
+/** Diferenciais da plataforma exibidos na coluna lateral do cadastro. */
 const FEATURES = [
   { icon: 'clipboard', text: 'Acompanhamento de prazos' },
   { icon: 'search', text: 'Filtros avançados por assunto' },
   { icon: 'bell', text: 'Alertas personalizados por interesse' },
 ]
 
+/** Estado do formulário de cadastro compartilhado entre os três passos. */
 type FormData = {
   nome: string
   estado: string
@@ -46,6 +51,7 @@ type FormData = {
   interesses: string[]
 }
 
+/** Valores iniciais do formulário de cadastro. */
 const initialForm: FormData = {
   nome: '',
   estado: 'SP',
@@ -61,8 +67,10 @@ const initialForm: FormData = {
 // Salva o preenchimento para não perder os dados em um refresh (F5).
 // As senhas nunca são gravadas: se o usuário der F5, basta redigitá-las.
 
+/** Chave usada no sessionStorage para persistir o rascunho do cadastro. */
 const DRAFT_KEY = 'signup-draft'
 
+/** Estrutura do rascunho do cadastro persistido (sem as senhas). */
 type Draft = {
   form: Omit<FormData, 'senha' | 'confirmarSenha'>
   acceptTerms: boolean
@@ -70,6 +78,11 @@ type Draft = {
   userEmail: string
 }
 
+/**
+ * Lê e valida o rascunho de cadastro salvo no sessionStorage.
+ * Descarta o rascunho se o passo atual exigir conta já criada sem token.
+ * @returns O rascunho válido ou null se não houver/estiver corrompido.
+ */
 function readDraft(): Draft | null {
   try {
     const raw = sessionStorage.getItem(DRAFT_KEY)
@@ -110,6 +123,11 @@ function readDraft(): Draft | null {
   }
 }
 
+/**
+ * Persiste o rascunho de cadastro no sessionStorage, ignorando
+ * falhas de armazenamento (aba anônima ou cota excedida).
+ * @param draft - Rascunho a ser salvo.
+ */
 function saveDraft(draft: Draft) {
   try {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
@@ -118,6 +136,10 @@ function saveDraft(draft: Draft) {
   }
 }
 
+/**
+ * Remove o rascunho de cadastro do sessionStorage, ignorando
+ * falhas de armazenamento.
+ */
 function clearDraft() {
   try {
     sessionStorage.removeItem(DRAFT_KEY)
@@ -126,6 +148,12 @@ function clearDraft() {
   }
 }
 
+/**
+ * Converte o formulário completo em o rascunho, excluindo
+ * as senhas — que nunca são gravadas no sessionStorage.
+ * @param form - Estado atual do formulário de cadastro.
+ * @returns Apenas os campos seguros para persistir no rascunho.
+ */
 // Nunca grava senha/confirmarSenha no rascunho
 function toDraftForm({
   nome,
@@ -140,6 +168,7 @@ function toDraftForm({
 
 // ---------- validação de senha ----------
 
+/** Resultado individual das regras de força da senha. */
 type PasswordChecks = {
   length: boolean
   upper: boolean
@@ -147,6 +176,11 @@ type PasswordChecks = {
   special: boolean
 }
 
+/**
+ * Avalia a senha digitada contra cada regra de segurança.
+ * @param senha - Senha em texto puro digitada pelo usuário.
+ * @returns Objeto booleano com o resultado de cada regra.
+ */
 function getPasswordChecks(senha: string): PasswordChecks {
   return {
     length: senha.length >= 8,
@@ -156,10 +190,20 @@ function getPasswordChecks(senha: string): PasswordChecks {
   }
 }
 
+/**
+ * Verifica se todas as regras de segurança da senha foram atendidas.
+ * @param checks - Resultado das regras retornado por getPasswordChecks.
+ * @returns true se a senha for considerada válida.
+ */
 function isPasswordValid(checks: PasswordChecks) {
   return checks.length && checks.upper && checks.lower && checks.special
 }
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone (ex.: 'clipboard', 'mail', 'eye', 'check').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'clipboard':
@@ -252,6 +296,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Fluxo de cadastro em três passos: criação da conta, seleção de
+ * interesses e confirmação de e-mail. Persiste um rascunho no
+ * sessionStorage para sobreviver a recarregamentos da página.
+ */
 export default function SignupFlow() {
   const navigate = useNavigate()
   const [draft] = useState<Draft | null>(readDraft)
@@ -280,20 +329,31 @@ export default function SignupFlow() {
   )
   const [userEmail, setUserEmail] = useState(draft?.userEmail ?? '')
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
   // Mantém o rascunho sempre atualizado (sem as senhas)
+  /**
+   * Persiste continuamente o rascunho do cadastro sempre que o formulário,
+   * o passo, o aceite dos termos ou o e-mail do usuário mudam.
+   */
   useEffect(() => {
     saveDraft({ form: toDraftForm(form), acceptTerms, step, userEmail })
   }, [form, acceptTerms, step, userEmail])
 
+  /** Regras de força da senha calculadas a partir da senha digitada. */
   const passwordChecks = getPasswordChecks(form.senha)
+  /** Indica se a senha atende a todas as regras de segurança. */
   const senhaValid = isPasswordValid(passwordChecks)
+  /** Indica se a confirmação foi preenchida e coincide com a senha. */
   const senhasCoincidem = form.confirmarSenha.length > 0 && form.confirmarSenha === form.senha
 
+  /** Indica se todos os campos obrigatórios do passo 1 estão válidos. */
   const step1Valid =
     validateName(form.nome) === null &&
     form.estado !== '' &&
@@ -303,13 +363,23 @@ export default function SignupFlow() {
     senhaValid &&
     senhasCoincidem &&
     acceptTerms
+  /** Indica se ao menos um interesse foi selecionado no passo 2. */
   const step2Valid = form.interesses.length > 0
 
+  /**
+   * Navega para outro passo do cadastro definindo a direção da animação.
+   * @param next - Passo de destino (1, 2 ou 3).
+   * @param dir - Direção da transição (1 para frente, -1 para voltar).
+   */
   function goTo(next: 1 | 2 | 3, dir: 1 | -1) {
     setDirection(dir)
     setStep(next)
   }
 
+  /**
+   * Valida o passo 1 e, se válido, envia a solicitação de criação de conta.
+   * Em caso de falha, exibe o erro no campo correspondente e aciona o shake.
+   */
   function handleContinueStep1() {
     if (!step1Valid) {
       setNomeError(validateName(form.nome) || '')
@@ -352,6 +422,10 @@ export default function SignupFlow() {
       })
   }
 
+  /**
+   * Valida o passo 2 e tenta salvar as preferências do usuário,
+   * avançando para a confirmação de e-mail em seguida.
+   */
   function handleContinueStep2() {
     if (!step2Valid) {
       triggerShake()
@@ -366,40 +440,68 @@ export default function SignupFlow() {
     }
   }
 
+  /**
+   * Sanitiza e atualiza o nome do formulário, atualizando o erro em seguida.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleNomeChange(value: string) {
     const sanitized = sanitizeName(value)
     setForm((f) => ({ ...f, nome: sanitized }))
     setNomeError(validateName(sanitized) || '')
   }
 
+  /**
+   * Sanitiza e atualiza o e-mail do formulário, atualizando o erro em seguida.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleEmailChange(value: string) {
     const sanitized = sanitizeEmail(value)
     setForm((f) => ({ ...f, email: sanitized }))
     setEmailError(validateEmail(sanitized) || '')
   }
 
+  /**
+   * Formata e atualiza o CPF do formulário, atualizando o erro em seguida.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleCpfChange(value: string) {
     const formatted = formatCpf(value)
     setForm((f) => ({ ...f, cpf: formatted }))
     setCpfError(validateCpf(formatted) || '')
   }
 
+  /**
+   * Sanitiza e atualiza a senha do formulário, atualizando o erro em seguida.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleSenhaChange(value: string) {
     const sanitized = sanitizeInput(value)
     setForm((f) => ({ ...f, senha: sanitized }))
     setSenhaErrorMsg(validatePassword(sanitized) || '')
   }
 
+  /**
+   * Sanitiza e atualiza a confirmação de senha do formulário.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleConfirmarSenhaChange(value: string) {
     const sanitized = sanitizeInput(value)
     setForm((f) => ({ ...f, confirmarSenha: sanitized }))
   }
 
+  /**
+   * Dispara a animação de "shake" no palco do formulário para
+   * sinalizar erro de validação ao usuário.
+   */
   function triggerShake() {
     setShake(true)
     window.setTimeout(() => setShake(false), 420)
   }
 
+  /**
+   * Alterna a seleção de um interesse na lista do passo 2.
+   * @param item - Nome do interesse a incluir ou remover.
+   */
   function toggleInteresse(item: string) {
     setForm((f) => ({
       ...f,
@@ -409,6 +511,10 @@ export default function SignupFlow() {
     }))
   }
 
+  /**
+   * Finaliza o cadastro: limpa o rascunho, encerra a sessão
+   * temporária e redireciona para a página de login.
+   */
   function handleFinish() {
     clearDraft()
     localStorage.removeItem('token')
@@ -542,6 +648,10 @@ export default function SignupFlow() {
   )
 }
 
+/**
+ * Indicador de progresso do cadastro com os três passos numerados.
+ * @param step - Passo atualmente em exibição.
+ */
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
   return (
     <div className="pde-stepper" role="list" aria-label="Progresso do cadastro">
@@ -557,6 +667,10 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
   )
 }
 
+/**
+ * Passo 1 do cadastro: formulário com dados pessoais, e-mail, CPF,
+ * data de nascimento, senha e aceite dos termos de uso.
+ */
 function StepAccount({
   form,
   setForm,
@@ -615,6 +729,7 @@ function StepAccount({
   dataNascimentoError: string
 }) {
   const navigate = useNavigate()
+  /** Indica se a confirmação de senha deve ser exibida como inválida. */
   const showConfirmInvalid = confirmarSenhaTouched && form.confirmarSenha.length > 0 && !senhasCoincidem
 
   return (
@@ -792,6 +907,12 @@ function StepAccount({
   )
 }
 
+/**
+ * Lista das regras de segurança da senha com o estado de cada uma
+ * (atendida ou não) e destaque de erro após o primeiro toque.
+ * @param checks - Resultado das regras da senha digitada.
+ * @param touched - Indica se o campo da senha já foi focado/desfocado.
+ */
 function PasswordRequirements({
   checks,
   touched,
@@ -799,6 +920,7 @@ function PasswordRequirements({
   checks: PasswordChecks
   touched: boolean
 }) {
+  /** Rótulos exibidos para cada regra de segurança da senha. */
   const items: { key: keyof PasswordChecks; label: string }[] = [
     { key: 'length', label: 'Mínimo de 8 caracteres' },
     { key: 'upper', label: '1 letra maiúscula' },
@@ -827,6 +949,10 @@ function PasswordRequirements({
   )
 }
 
+/**
+ * Passo 2 do cadastro: seleção das áreas de interesse por meio de
+ * tags alternáveis, com botões de voltar e continuar.
+ */
 function StepInterests({
   selected,
   onToggle,
@@ -875,6 +1001,10 @@ function StepInterests({
   )
 }
 
+/**
+ * Passo 3 do cadastro: confirmação de e-mail com aviso de verificação,
+ * opção de reenvio do link (com tempo de espera) e retorno ao login.
+ */
 function StepDone({
   email,
   onBack,
@@ -894,12 +1024,19 @@ function StepDone({
   const [resendErr, setResendErr] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(60)
 
+  /**
+   * Decrementa o contador de espera para reenvio de e-mail a cada segundo.
+   */
   useEffect(() => {
     if (cooldown <= 0) return
     const t = window.setTimeout(() => setCooldown((c) => c - 1), 1000)
     return () => window.clearTimeout(t)
   }, [cooldown])
 
+  /**
+   * Solicita o reenvio do e-mail de verificação, tratando mensagens
+   * de limite de tempo e reiniciando o contador de espera quando aplicável.
+   */
   async function handleResend() {
     setResendMsg(null)
     setResendErr(null)

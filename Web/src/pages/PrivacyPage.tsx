@@ -3,6 +3,11 @@ import logoPonte from '../assets/logo-ponte.png'
 import logoNome from '../assets/logo-nome.png'
 import './PrivacyPage.css'
 
+/**
+ * Página estática com a Política de Privacidade do Ponte do Edital,
+ * explicando a coleta, o uso, a segurança e os direitos do usuário
+ * sobre seus dados pessoais.
+ */
 export default function PrivacyPage() {
   const navigate = useNavigate()
 

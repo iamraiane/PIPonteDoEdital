@@ -6,22 +6,30 @@ import { login, resendVerificationEmail, ApiError } from '../services/user'
 import { sanitizeInput, sanitizeEmail, validateEmail } from '../utils/validation'
 import './LoginFlow.css'
 
+/** Diferenciais da plataforma exibidos na coluna lateral do login. */
 const FEATURES = [
   { icon: 'bookmark', text: 'Salve seus editais de interesse para ser alertado' },
   { icon: 'bell', text: 'Fique por dentro de novos editais' },
   { icon: 'edit', text: 'Edite suas preferências quando quiser' },
 ]
 
+/** Campos do formulário de autenticação. */
 type LoginData = {
   email: string
   senha: string
 }
 
+/** Valores iniciais do formulário de login. */
 const initialForm: LoginData = {  
   email: '',
   senha: '',
 }
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone (ex.: 'bookmark', 'mail', 'eye', 'check').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'bookmark':
@@ -83,6 +91,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Tela de login: valida as credenciais, autentica o usuário e o
+ * redireciona para o feed. Quando o e-mail ainda não foi verificado,
+ * exibe o aviso com a opção de reenviar o link de confirmação.
+ */
 export default function LoginFlow() {
   const navigate = useNavigate()
   const [form, setForm] = useState<LoginData>(initialForm)
@@ -100,6 +113,9 @@ export default function LoginFlow() {
   const [resendErr, setResendErr] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
 
+  /**
+   * Decrementa o contador de espera para reenvio de e-mail a cada segundo.
+   */
   useEffect(() => {
     if (cooldown <= 0) return
     const t = window.setTimeout(() => setCooldown((c) => c - 1), 1000)
@@ -107,15 +123,25 @@ export default function LoginFlow() {
   }, [cooldown])
 
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /** Indica se o e-mail digitado passa na validação de formato. */
   const emailValid = validateEmail(form.email) === null
+  /** Indica se a senha digitada possui o mínimo de 8 caracteres. */
   const senhaValid = form.senha.length >= 8
+  /** Indica se todos os campos do formulário de login estão válidos. */
   const formValid = emailValid && senhaValid
 
+  /**
+   * Sanitiza e atualiza o e-mail do formulário, atualizando o erro em seguida.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleEmailChange(value: string) {
     const sanitized = sanitizeEmail(value)
     setForm((f) => ({ ...f, email: sanitized }))
@@ -123,21 +149,39 @@ export default function LoginFlow() {
     setEmailError(error || '')
   }
 
+  /**
+   * Sanitiza e atualiza a senha do formulário de login.
+   * @param value - Texto digitado pelo usuário.
+   */
   function handleSenhaChange(value: string) {
     const sanitized = sanitizeInput(value)
     setForm((f) => ({ ...f, senha: sanitized }))
   }
 
+  /**
+   * Revalida o e-mail quando o campo perde o foco,
+   * atualizando a mensagem de erro exibida.
+   */
   function handleEmailBlur() {
     const error = validateEmail(form.email)
     setEmailError(error || '')
   }
 
+  /**
+   * Dispara a animação de "shake" no formulário para sinalizar
+   * erro de validação ou de autenticação.
+   */
   function triggerShake() {
     setShake(true)
     window.setTimeout(() => setShake(false), 420)
   }
 
+  /**
+   * Valida o formulário e envia a solicitação de login. Em caso de
+   * sucesso, armazena o token e redireciona para o feed; em caso de
+   * e-mail não verificado, exibe o aviso de reenvio da confirmação.
+   * @param e - Evento de envio do formulário.
+   */
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setTouched(true)
@@ -181,6 +225,10 @@ export default function LoginFlow() {
     })
   }
 
+  /**
+   * Solicita o reenvio do e-mail de verificação, tratando mensagens
+   * de limite de tempo e reiniciando o contador de espera quando aplicável.
+   */
   async function handleResend() {
     setResendMsg(null)
     setResendErr(null)

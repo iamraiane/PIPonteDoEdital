@@ -3,6 +3,10 @@ import logoPonte from '../assets/logo-ponte.png'
 import logoNome from '../assets/logo-nome.png'
 import './TermsPage.css'
 
+/**
+ * Página estática com os Termos de Uso do Ponte do Edital,
+ * apresentando as condições de utilização da plataforma em seções numeradas.
+ */
 export default function TermsPage() {
   const navigate = useNavigate()
 

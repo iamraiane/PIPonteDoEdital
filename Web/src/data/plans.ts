@@ -1,3 +1,6 @@
+/**
+ * Dados de um plano de assinatura exibido na página comercial.
+ */
 export interface Plan {
   id: 'free' | 'premium'
   name: string
@@ -9,6 +12,9 @@ export interface Plan {
   action?: 'navigate' | 'subscribe'
 }
 
+/**
+ * Lista dos planos disponíveis (gratuito e premium) para a página comercial.
+ */
 export const PLANS: Plan[] = [
   {
     id: 'free',

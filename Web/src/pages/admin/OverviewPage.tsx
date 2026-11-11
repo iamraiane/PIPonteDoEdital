@@ -1,11 +1,16 @@
 import './OverviewPage.css'
 
+/** Métricas principais exibidas nos cartões da visão geral do admin. */
 const METRICS = [
   { label: 'Usuários Ativos', value: '1.284' },
   { label: 'Prazos Agendados', value: '2.910' },
   { label: 'Assinaturas Premium', value: '192' },
 ]
 
+/**
+ * Página de visão geral do painel administrativo: exibe os títulos
+ * da seção e os cartões com as métricas principais da plataforma.
+ */
 export default function OverviewPage() {
   return (
     <div className="pda-overview-page">

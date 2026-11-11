@@ -15,11 +15,13 @@ import {
 } from '../../services/notification'
 import './ProfilePage.css'
 
+/** Áreas de interesse disponíveis para seleção no perfil. */
 const INTERESSES = [
   'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
   'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
 ]
 
+/** Associa cada área de interesse ao nome do ícone correspondente. */
 const ICONE_POR_INTERESSE: Record<string, string> = {
   Tecnologia: 'tech',
   Educação: 'educacao',
@@ -31,6 +33,7 @@ const ICONE_POR_INTERESSE: Record<string, string> = {
   Engenharia: 'engenharia',
 }
 
+/** Lista de estados brasileiros (sigla e nome) para o campo de localização. */
 const ESTADOS = [
   { value: 'AC', label: 'Acre' },
   { value: 'AL', label: 'Alagoas' },
@@ -61,6 +64,7 @@ const ESTADOS = [
   { value: 'TO', label: 'Tocantins' },
 ]
 
+/** Opções de antecedência (em dias) para as notificações de prazo. */
 const NOTIFICATION_DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 60, label: '60 dias antes' },
   { value: 30, label: '30 dias antes' },
@@ -71,6 +75,7 @@ const NOTIFICATION_DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 0, label: 'No dia do prazo' },
 ]
 
+/** Dados exibidos e editados na página de perfil do usuário. */
 export type ProfileData = {
   nome: string
   email: string
@@ -81,6 +86,10 @@ export type ProfileData = {
   avatarUrl: string | null
 }
 
+/**
+ * Página de perfil: dados pessoais, troca de foto e e-mail, áreas de interesse,
+ * preferências de notificação e integração com a Google Agenda.
+ */
 export default function ProfilePage({
   profile,
   onChange,
@@ -114,17 +123,29 @@ export default function ProfilePage({
   const [notifDays, setNotifDays] = useState<number[]>([])
   const [notifError, setNotifError] = useState<string | null>(null)
 
+  /**
+   * Carrega as preferências de notificação do usuário ao montar a página.
+   */
   useEffect(() => {
     getNotificationPreferences()
       .then((data) => setNotifDays(data.selected))
       .catch(() => setNotifError('Não foi possível carregar as preferências de notificação'))
   }, [])
 
+  /**
+   * Atualiza um campo do perfil e marca a página como com alterações não salvas.
+   * @param key - Campo a alterar.
+   * @param value - Novo valor do campo.
+   */
   function set<K extends keyof ProfileData>(key: K, value: ProfileData[K]) {
     onChange({ ...profile, [key]: value })
     setSaved(false)
   }
 
+  /**
+   * Trata a digitação do nome, sanitizando caracteres e validando o conteúdo.
+   * @param e - Evento de alteração do campo de nome.
+   */
   function handleNomeChange(e: ChangeEvent<HTMLInputElement>) {
     const sanitized = sanitizeName(e.target.value)
     set('nome', sanitized)
@@ -132,6 +153,10 @@ export default function ProfilePage({
     setNameError(error)
   }
 
+  /**
+   * Adiciona ou remove uma área de interesse da lista do usuário.
+   * @param item - Nome da área de interesse.
+   */
   function toggleInteresse(item: string) {
     const has = profile.interesses.includes(item)
     set(
@@ -140,6 +165,10 @@ export default function ProfilePage({
     )
   }
 
+  /**
+   * Ativa ou desativa uma antecedência de notificação.
+   * @param value - Quantidade de dias antes do prazo.
+   */
   function toggleNotifDay(value: number) {
     setNotifError(null)
     setNotifDays((prev) =>
@@ -147,9 +176,15 @@ export default function ProfilePage({
     )
   }
 
+  /** Formatos de imagem aceitos para a foto de perfil. */
   const AVATAR_TIPOS = ['image/jpeg', 'image/png', 'image/webp']
+  /** Tamanho máximo (2 MB) aceito para a foto de perfil. */
   const AVATAR_TAMANHO_MAX = 2 * 1024 * 1024
 
+  /**
+   * Valida o arquivo de foto escolhido (formato e tamanho) e o encaminha para preview.
+   * @param e - Evento de alteração do input de arquivo.
+   */
   function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const input = e.target
     const file = input.files?.[0]
@@ -169,6 +204,10 @@ export default function ProfilePage({
     onAvatarSelect(file)
   }
 
+  /**
+   * Salva o perfil e as preferências de notificação em paralelo, exibindo
+   * confirmação temporária e tratando erros de upload da foto.
+   */
   async function handleSave() {
     const error = validateName(profile.nome)
     if (error) {
@@ -199,6 +238,11 @@ export default function ProfilePage({
     }
   }
 
+  /**
+   * Valida e envia a solicitação de alteração de e-mail, tratando os
+   * erros mais comuns (e-mail em uso, senha incorreta etc.).
+   * @param e - Evento de submissão do formulário do modal de e-mail.
+   */
   async function handleEmailChangeSubmit(e: React.FormEvent) {
     e.preventDefault()
     setEmailChangeError(null)
@@ -239,6 +283,7 @@ export default function ProfilePage({
     }
   }
 
+  /** Abre o modal de alteração de e-mail com os campos limpos. */
   function openEmailChangeModal() {
     setEmailChangeOpen(true)
     setEmailChangeError(null)
@@ -246,6 +291,7 @@ export default function ProfilePage({
     setCurrentPassword('')
   }
 
+  /** Fecha o modal de alteração de e-mail e limpa os campos. */
   function closeEmailChangeModal() {
     setEmailChangeOpen(false)
     setEmailChangeError(null)
@@ -253,10 +299,15 @@ export default function ProfilePage({
     setCurrentPassword('')
   }
 
+  /** CPF do usuário já formatado com máscara (ou vazio). */
   const formattedCpf = profile.cpf ? formatCpf(profile.cpf) : ''
 
+  /** Indica se a integração com a Google Agenda está autorizada. */
   const gcalConnected = gcalStatus === 'granted'
 
+  /**
+   * Inicia a conexão com a Google Agenda e informa o resultado ao usuário.
+   */
   async function handleGcalConnect() {
     setGcalBusy(true)
     const status = await connectGoogleCalendar()
@@ -269,6 +320,10 @@ export default function ProfilePage({
     )
   }
 
+  /**
+   * Desconecta a Google Agenda após confirmação, removendo os eventos criados
+   * e informando quantos eventos puderam (ou não) ser excluídos.
+   */
   async function handleGcalDisconnect() {
     const confirmed = window.confirm(
       'Desconectar a Google Agenda?\n\nOs prazos já adicionados serão removidos do seu calendário.',

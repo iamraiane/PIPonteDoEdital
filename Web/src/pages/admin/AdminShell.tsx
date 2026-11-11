@@ -4,8 +4,10 @@ import logoPonte from '../../assets/logo-ponte.png'
 import { DashIcon } from '../dashboard/Icons'
 import './AdminShell.css'
 
+/** Identificadores das páginas disponíveis no painel administrativo. */
 export type AdminPageKey = 'overview' | 'editais' | 'usuarios' | 'duvidas'
 
+/** Itens de navegação da barra lateral do painel administrativo. */
 const NAV_ITEMS: { key: AdminPageKey; label: string; icon: string }[] = [
   { key: 'overview', label: 'Visão Geral', icon: 'home' },
   { key: 'editais', label: 'Editais', icon: 'file' },
@@ -13,6 +15,16 @@ const NAV_ITEMS: { key: AdminPageKey; label: string; icon: string }[] = [
   { key: 'duvidas', label: 'Dúvidas', icon: 'question' },
 ]
 
+/**
+ * Layout do painel administrativo: cabeçalho com menu do admin,
+ * barra lateral de navegação e área principal onde as páginas
+ * filhas são renderizadas com animação de entrada.
+ * @param active - Chave da página atualmente ativa no menu lateral.
+ * @param onNavigate - Callback acionado ao selecionar um item do menu.
+ * @param onExitAdmin - Callback para voltar ao painel do usuário.
+ * @param onLogout - Callback para encerrar a sessão.
+ * @param children - Conteúdo da página atual exibido na área principal.
+ */
 export default function AdminShell({
   active,
   onNavigate,
@@ -30,13 +42,24 @@ export default function AdminShell({
   const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  /**
+   * Ativa a animação de entrada do shell logo após a montagem.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /**
+   * Fecha o menu suspensão do admin quando o usuário clica
+   * fora dele enquanto está aberto.
+   */
   useEffect(() => {
     if (!menuOpen) return
+    /**
+     * Fecha o menu se o clique ocorrer fora do seu contêiner.
+     * @param e - Evento de clique no documento.
+     */
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node
       if (menuRef.current && !menuRef.current.contains(target)) {

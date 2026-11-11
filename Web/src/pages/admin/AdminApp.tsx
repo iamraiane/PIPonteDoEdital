@@ -5,6 +5,7 @@ import EditaisPage from './EditaisPage'
 import UsuariosPage from './UsuariosPage'
 import DoubtsPage from './DoubtsPage'
 
+/** Mapeia o segmento de URL da rota para a chave interna da página. */
 const ROUTE_MAP: Record<string, string> = {
   overview: 'overview',
   editais: 'editais',
@@ -12,6 +13,7 @@ const ROUTE_MAP: Record<string, string> = {
   duvidas: 'duvidas',
 }
 
+/** Mapeia a chave de navegação do menu para a rota completa do admin. */
 const KEY_TO_ROUTE: Record<string, string> = {
   overview: '/admin/overview',
   editais: '/admin/editais',
@@ -19,6 +21,11 @@ const KEY_TO_ROUTE: Record<string, string> = {
   duvidas: '/admin/duvidas',
 }
 
+/**
+ * Aplicação do painel administrativo: define as rotas internas
+ * (visão geral, editais, usuários e dúvidas) dentro do shell do admin
+ * e sincroniza o item de menu ativo com a URL atual.
+ */
 export default function AdminApp({
   onExitAdmin,
   onLogout,
@@ -32,6 +39,10 @@ export default function AdminApp({
   const pathSegment = location.pathname.split('/')[2] || 'overview'
   const page = ROUTE_MAP[pathSegment] || 'overview'
 
+  /**
+   * Navega para a rota do admin correspondente à chave do menu.
+   * @param key - Chave da página de destino ('overview', 'editais', 'usuarios' ou 'duvidas').
+   */
   function handleNavigate(key: string) {
     navigate(KEY_TO_ROUTE[key])
   }

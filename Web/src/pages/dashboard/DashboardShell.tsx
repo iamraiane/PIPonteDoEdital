@@ -12,6 +12,7 @@ import {
 import { timeAgo } from '../../utils/timeAgo'
 import './DashboardShell.css'
 
+/** Identificador interno de cada página acessível pelo menu do dashboard. */
 export type PageKey =
   | 'feed'
   | 'calendar'
@@ -22,6 +23,7 @@ export type PageKey =
   | 'profile'
   | 'notifications'
 
+/** Itens do menu lateral: chave da página, rótulo, ícone e marcação de premium. */
 const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean }[] = [
   { key: 'feed', label: 'Feed', icon: 'home' },
   { key: 'calendar', label: 'Calendário', icon: 'calendar', premium: true },
@@ -31,11 +33,14 @@ const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean 
   { key: 'about', label: 'Quem somos', icon: 'people' },
 ]
 
+/** Páginas exibidas diretamente na barra inferior do celular. */
 // No celular só cabem alguns atalhos na barra inferior; o restante fica
 // dentro do item "Mais" (mesmo padrão do protótipo mobile).
 const MOBILE_PRIMARY_KEYS: PageKey[] = ['feed', 'calendar', 'saved', 'plans']
+/** Demais itens do menu, exibidos dentro do painel "Mais" no celular. */
 const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) => !MOBILE_PRIMARY_KEYS.includes(item.key))
 
+/** Associa cada área de interesse ao nome do ícone exibido no painel lateral. */
 const ICONE_POR_INTERESSE: Record<string, string> = {
   Tecnologia: 'tech',
   Educação: 'educacao',
@@ -47,6 +52,10 @@ const ICONE_POR_INTERESSE: Record<string, string> = {
   Engenharia: 'engenharia',
 }
 
+/**
+ * Casca visual do dashboard: cabeçalho com busca e notificações, menu lateral,
+ * barra de navegação mobile, card de preferências e a área de conteúdo (children).
+ */
 export default function DashboardShell({
   active,
   onNavigate,
@@ -83,8 +92,12 @@ export default function DashboardShell({
   const moreRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
 
+  /** Quantidade de notificações não lidas (usada no indicador do sino). */
   const unread = notifications.filter((n) => !n.is_read).length
 
+  /**
+   * Recarrega a lista de notificações da API, ignorando falhas de rede.
+   */
   const refreshNotifications = useCallback(async () => {
     try {
       const data = await getNotifications()
@@ -96,6 +109,10 @@ export default function DashboardShell({
     }
   }, [])
 
+  /**
+   * Carrega as notificações ao montar e as mantém atualizadas por polling de
+   * 60 s e sempre que a aba volta a ficar visível.
+   */
   useEffect(() => {
     getNotifications()
       .then(setNotifications)
@@ -106,6 +123,7 @@ export default function DashboardShell({
       refreshNotifications()
     }, 60_000)
 
+    /** Recarrega a lista de notificações quando o usuário retorna para a aba. */
     function onVisibilityChange() {
       if (document.visibilityState === 'visible') refreshNotifications()
     }
@@ -117,16 +135,24 @@ export default function DashboardShell({
     }
   }, [refreshNotifications])
 
+  /** Estado global de filtros do feed (busca, meses e estados) compartilhado entre as páginas. */
   const { query, setQuery, months, states, counts, activeCount, toggleMonth, toggleState, clearFilters } =
     useFeedFilters()
 
+  /**
+   * Marca o shell como montado após o primeiro frame para acionar a animação de entrada.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /**
+   * Fecha os painéis flutuantes (menu, notificações, "Mais" e filtros) ao clicar fora deles.
+   */
   useEffect(() => {
     if (!menuOpen && !notifOpen && !moreOpen && !filtersOpen) return
+    /** Fecha apenas os painéis que não contêm o elemento clicado. */
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node
       if (menuOpen && menuRef.current && !menuRef.current.contains(target)) {
@@ -146,8 +172,12 @@ export default function DashboardShell({
     return () => document.removeEventListener('click', onClickOutside)
   }, [menuOpen, notifOpen, moreOpen, filtersOpen])
 
+  /**
+   * Fecha o painel de filtros do feed ao pressionar a tecla Escape.
+   */
   useEffect(() => {
     if (!filtersOpen) return
+    /** Fecha o painel de filtros quando a tecla Escape é pressionada. */
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') setFiltersOpen(false)
     }
@@ -155,6 +185,10 @@ export default function DashboardShell({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [filtersOpen])
 
+  /**
+   * Abre ou fecha o painel de notificações (recarregando a lista ao abrir)
+   * e fecha os demais painéis flutuantes.
+   */
   function toggleNotif() {
     const next = !notifOpen
     setNotifOpen(next)
@@ -166,6 +200,10 @@ export default function DashboardShell({
     setFiltersOpen(false)
   }
 
+  /**
+   * Marca a notificação como lida, fecha o painel e leva o usuário para a página de salvos.
+   * @param n - Notificação clicada no painel do sino.
+   */
   async function handleNotifClick(n: AppNotification) {
     if (!n.is_read) {
       setNotifications((prev) =>
@@ -181,6 +219,9 @@ export default function DashboardShell({
     onNavigate('saved')
   }
 
+  /**
+   * Marca todas as notificações como lidas, primeiro localmente e depois na API.
+   */
   async function handleMarkAllRead() {
     setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })))
     try {
@@ -190,12 +231,17 @@ export default function DashboardShell({
     }
   }
 
+  /** Abre/fecha o menu do avatar e fecha os painéis de notificações e filtros. */
   function toggleMenu() {
     setMenuOpen((v) => !v)
     setNotifOpen(false)
     setFiltersOpen(false)
   }
 
+  /**
+   * Abre o painel de filtros do feed, navegando para a página do feed caso o
+   * usuário esteja em outra, e fecha os demais painéis.
+   */
   function openFilters() {
     setFiltersOpen(true)
     setMenuOpen(false)
@@ -586,4 +632,5 @@ export default function DashboardShell({
   )
 }
 
+/** Reexporta os itens de navegação para uso em outros módulos. */
 export { NAV_ITEMS }

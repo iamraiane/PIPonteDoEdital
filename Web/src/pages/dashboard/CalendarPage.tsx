@@ -4,23 +4,42 @@ import { type PageKey } from './DashboardShell'
 import { getFavorites, type Favorite } from '../../services/favorite'
 import './CalendarPage.css'
 
+/** Iniciais dos dias da semana exibidas no cabeçalho do calendário. */
 const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+/** Nomes completos dos meses usados no cabeçalho e nos títulos de prazos. */
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
+/**
+ * Monta a chave de data "AAAA-MM-DD" a partir dos componentes numéricos.
+ * @param year - Ano.
+ * @param month - Mês (0-11).
+ * @param day - Dia do mês.
+ * @returns Data no formato de chave.
+ */
 function toDateKey(year: number, month: number, day: number): string {
   const m = String(month + 1).padStart(2, '0')
   const d = String(day).padStart(2, '0')
   return `${year}-${m}-${d}`
 }
 
+/**
+ * Formata uma data ISO no padrão brasileiro curto (ex.: "12 out. 2026").
+ * @param dateStr - Data no formato "AAAA-MM-DD".
+ * @returns Data formatada.
+ */
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+/**
+ * Página do calendário: grade mensal com navegação entre meses, marcadores de
+ * dias com prazos de editais salvos e lista de eventos do dia selecionado.
+ * Recurso exclusivo para assinantes Premium.
+ */
 export default function CalendarPage({
   hasPremium = false,
   userId,
@@ -35,6 +54,9 @@ export default function CalendarPage({
   const [selected, setSelected] = useState(now.getDate())
   const [favorites, setFavorites] = useState<Favorite[]>([])
 
+  /**
+   * Carrega os editais salvos do usuário para marcar os dias com prazo.
+   */
   useEffect(() => {
     if (!userId) return
     getFavorites()
@@ -42,6 +64,10 @@ export default function CalendarPage({
       .catch(() => {})
   }, [userId])
 
+  /**
+   * Agrupa os favoritos por data de prazo para consultar rapidamente
+   * os editais de cada dia da grade.
+   */
   const deadlineMap = useMemo(() => {
     const map = new Map<string, Favorite[]>()
     for (const fav of favorites) {
@@ -55,9 +81,15 @@ export default function CalendarPage({
     return map
   }, [favorites])
 
+  /** Chave de data do dia atualmente selecionado (ou null se nenhum dia estiver ativo). */
   const selectedKey = selected > 0 ? toDateKey(cursor.year, cursor.month, selected) : null
+  /** Editais salvos com prazo no dia selecionado. */
   const selectedFavorites = selectedKey ? deadlineMap.get(selectedKey) ?? [] : []
 
+  /**
+   * Monta as células da grade do mês: dias vazios de preenchimento seguidos
+   * pelos dias numéricos do mês.
+   */
   const cells = useMemo(() => {
     const firstWeekday = new Date(cursor.year, cursor.month, 1).getDay()
     const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate()
@@ -67,6 +99,10 @@ export default function CalendarPage({
     return arr
   }, [cursor])
 
+  /**
+   * Avança ou retrocede o calendário um mês, limpando a seleção de dia.
+   * @param delta - +1 para o próximo mês, -1 para o anterior.
+   */
   function changeMonth(delta: number) {
     setCursor((c) => {
       let month = c.month + delta

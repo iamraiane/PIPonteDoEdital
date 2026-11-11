@@ -5,6 +5,7 @@ import logoNome from "../assets/logo-nome.png";
 import AppLoader from "../components/AppLoader";
 import { PLANS } from "../data/plans";
 import "./CommercialPage.css";
+/** Estatísticas de destaque exibidas no painel lateral do hero. */
 const STATS = [
   { value: "15.500+", label: "editais monitorados" },
   { value: "27", label: "estados e DF cobertos" },
@@ -12,6 +13,7 @@ const STATS = [
   { value: "600+", label: "prazos agendados" },
 ];
 
+/** Cartões de recursos do produto apresentados na seção "Recursos". */
 const FEATURES = [
   {
     icon: (
@@ -58,6 +60,7 @@ const FEATURES = [
   },
 ];
 
+/** Passos numerados da seção "Como funciona" da página comercial. */
 const STEPS = [
   {
     n: "1",
@@ -76,6 +79,12 @@ const STEPS = [
   },
 ];
 
+/**
+ * Hook que observa a visibilidade do elemento referenciado e ativa a
+ * animação de revelação quando ele entra na área visível da página.
+ * Respeita a preferência por movimento reduzido do usuário.
+ * @returns Referência do elemento e flag indicando que já foi revelado.
+ */
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [visible, setVisible] = useState(
@@ -97,6 +106,14 @@ function useReveal<T extends HTMLElement>() {
   return { ref, visible };
 }
 
+/**
+ * Wrapper que aplica a animação de revelação (fade/slide) aos filhos
+ * quando eles se tornam visíveis na tela.
+ * @param children - Conteúdo a ser revelado.
+ * @param className - Classes adicionais aplicadas ao elemento.
+ * @param delay - Atraso em milissegundos antes da animação.
+ * @param as - Tag HTML usada para renderizar o elemento.
+ */
 function Reveal({ children, className = "", delay = 0, as: Tag = "div" }: {
   children: React.ReactNode;
   className?: string;
@@ -112,6 +129,11 @@ function Reveal({ children, className = "", delay = 0, as: Tag = "div" }: {
   );
 }
 
+/**
+ * Página comercial (landing page) do Ponte do Edital: apresenta hero
+ * com estatísticas, recursos, passos de utilização, planos e chamadas
+ * para ação, com menu responsivo e animações de revelação.
+ */
 export default function CommercialPage() {
   const navigate = useNavigate();
   const [heroPlayed, setHeroPlayed] = useState(false);
@@ -119,6 +141,10 @@ export default function CommercialPage() {
   const [scrolled, setScrolled] = useState(false);
   const [loader, setLoader] = useState<"loading" | "fading" | "gone">("loading");
 
+  /**
+   * Pré-carrega as imagens da marca e mantém o loader visível por um
+   * tempo mínimo antes de liberar a animação de entrada do hero.
+   */
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cancelled = false;
@@ -153,6 +179,10 @@ export default function CommercialPage() {
     };
   }, []);
 
+  /**
+   * Bloqueia a rolagem do corpo enquanto o loader está na tela
+   * e a libera quando ele termina de desaparecer.
+   */
   useEffect(() => {
     if (loader === "gone") {
       document.body.style.overflow = "";
@@ -164,6 +194,9 @@ export default function CommercialPage() {
     };
   }, [loader]);
 
+  /**
+   * Detecta rolagens da página para alternar o estilo fixo do cabeçalho.
+   */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -171,6 +204,10 @@ export default function CommercialPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /**
+   * Fecha o menu móvel e rola suavemente até a seção indicada.
+   * @param id - Identificador da seção de destino.
+   */
   const scrollTo = useCallback((id: string) => {
     setMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });

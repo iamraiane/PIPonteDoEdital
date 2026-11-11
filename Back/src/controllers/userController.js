@@ -9,6 +9,11 @@ import { generateRandomToken } from "../utils/tokenUtils.js";
 import { validateCPF } from "../utils/cpfValidator.js";
 import { validateName } from "../utils/nameValidator.js";
 import {
+  enviarAvatar,
+  apagarBlob,
+  validarImagem,
+} from "../services/blobService.js";
+import {
   sendForgotPasswordEmail,
   sendEmailVerificationEmail,
   createEmailVerificationToken,
@@ -85,22 +90,17 @@ export class AuthController {
       } = req.body;
 
       if (!name || !email || !password || !cpf || !data_nascimento) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Nome, email, senha, CPF, data de nascimento são obrigatórios",
-          });
+        return res.status(400).json({
+          message:
+            "Nome, email, senha, CPF, data de nascimento são obrigatórios",
+        });
       }
 
       const isNameValid = validateName(name);
       if (!isNameValid) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Nome inválido. O nome deve conter apenas letras e espaços.",
-          });
+        return res.status(400).json({
+          message: "Nome inválido. O nome deve conter apenas letras e espaços.",
+        });
       }
 
       const existingUser = await repo.findOne({ where: { email } });
@@ -176,11 +176,9 @@ export class AuthController {
       const { id } = req.params;
 
       if (req.user.id !== parseInt(id)) {
-        return res
-          .status(403)
-          .json({
-            message: "Você não tem permissão para atualizar este usuário",
-          });
+        return res.status(403).json({
+          message: "Você não tem permissão para atualizar este usuário",
+        });
       }
 
       const { name, state_code, preferences } = req.body;
@@ -217,7 +215,13 @@ export class AuthController {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
+    const blobAntigo = userToDelete.avatar_blob;
+
     await repo.remove(userToDelete);
+
+    apagarBlob(blobAntigo).catch((e) =>
+      console.error("Falha ao apagar avatar do usuário removido:", e.message),
+    );
 
     return res.status(200).json({ message: "Usuário removido com sucesso" });
   }
@@ -548,11 +552,9 @@ export class AuthController {
       }
 
       if (new Date() > new Date(userToken.expires_at)) {
-        return res
-          .status(400)
-          .json({
-            message: "Token expirado, solicite um novo e-mail de confirmação",
-          });
+        return res.status(400).json({
+          message: "Token expirado, solicite um novo e-mail de confirmação",
+        });
       }
 
       await userRepo.update(
@@ -619,11 +621,9 @@ export class AuthController {
       await sendEmailChangeEmail(newEmail, userToken.token);
       await sendEmailChangeNoticeToOldEmail(user.email);
 
-      return res
-        .status(200)
-        .json({
-          message: "Enviamos um link de confirmação para o novo e-mail",
-        });
+      return res.status(200).json({
+        message: "Enviamos um link de confirmação para o novo e-mail",
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Erro interno no servidor" });
@@ -651,11 +651,9 @@ export class AuthController {
       }
 
       if (new Date() > new Date(userToken.expires_at)) {
-        return res
-          .status(400)
-          .json({
-            message: "Token expirado, solicite a troca de e-mail novamente",
-          });
+        return res.status(400).json({
+          message: "Token expirado, solicite a troca de e-mail novamente",
+        });
       }
 
       const user = await userRepo.findOne({ where: { id: userToken.user_id } });
@@ -736,17 +734,111 @@ export class AuthController {
         lastToken &&
         Date.now() - new Date(lastToken.created_at).getTime() < 60 * 1000
       ) {
-        return res
-          .status(429)
-          .json({
-            message: "Aguarde um minuto antes de solicitar outro e-mail",
-          });
+        return res.status(429).json({
+          message: "Aguarde um minuto antes de solicitar outro e-mail",
+        });
       }
 
       const userToken = await createEmailVerificationToken(user.id);
       await sendEmailVerificationEmail(user.email, userToken.token);
 
       return res.status(200).json(genericResponse);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Erro interno no servidor" });
+    }
+  }
+}
+
+export class AvatarController {
+    async updateAvatar(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (req.user.id !== parseInt(id)) {
+        return res.status(403).json({
+          message: "Você não tem permissão para alterar este avatar",
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Confere os bytes reais do arquivo, não só o mimetype enviado pelo cliente
+      const mimeReal = await validarImagem(req.file.buffer);
+      if (!mimeReal) {
+        return res
+          .status(415)
+          .json({ message: "Arquivo não é uma imagem válida" });
+      }
+      req.file.mimetype = mimeReal;
+
+      const repo = AppDataSource.getRepository(UserEntity);
+      const user = await repo.findOneBy({ id: parseInt(id) });
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      const blobAntigo = user.avatar_blob;
+
+      // 1) envia a nova imagem
+      const { nomeBlob, url } = await enviarAvatar(req.file);
+
+      // 2) salva no banco (se falhar, remove a imagem recém-enviada)
+      user.avatar_blob = nomeBlob;
+      user.avatar_url = url;
+      try {
+        await repo.save(user);
+      } catch (dbError) {
+        await apagarBlob(nomeBlob).catch(() => {});
+        throw dbError;
+      }
+
+      // 3) só então apaga a antiga
+      apagarBlob(blobAntigo).catch((e) =>
+        console.error("Falha ao apagar avatar antigo:", e.message)
+      );
+
+      return res.status(200).json({
+        message: "Avatar atualizado com sucesso",
+        avatar_url: url,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Erro interno no servidor" });
+    }
+  }
+
+  async removeAvatar(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (req.user.id !== parseInt(id)) {
+        return res.status(403).json({
+          message: "Você não tem permissão para remover este avatar",
+        });
+      }
+
+      const repo = AppDataSource.getRepository(UserEntity);
+      const user = await repo.findOneBy({ id: parseInt(id) });
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      const blobAntigo = user.avatar_blob;
+
+      user.avatar_blob = null;
+      user.avatar_url = null;
+      await repo.save(user);
+
+      await apagarBlob(blobAntigo).catch((e) =>
+        console.error("Falha ao apagar avatar:", e.message)
+      );
+
+      return res.status(200).json({ message: "Avatar removido com sucesso" });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Erro interno no servidor" });

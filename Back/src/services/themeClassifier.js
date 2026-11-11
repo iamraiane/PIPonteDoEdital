@@ -1,6 +1,3 @@
-// Classificador de temas de editais por palavras-chave (multi-label, sem custo).
-// Os temas retornados usam exatamente os mesmos rótulos do INTERESSES do cadastro.
-
 export const THEMES = [
     "Tecnologia",
     "Educação",

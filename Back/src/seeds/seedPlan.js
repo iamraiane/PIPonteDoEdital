@@ -1,8 +1,6 @@
 import { AppDataSource } from "../../data-source.js";
 import { PlanEntity } from "../entities/Plan.js";
 
-// Ajuste nome, descrição e valor do plano antes de rodar em produção.
-// O valor também pode vir de SEED_PLAN_VALUE (ex.: 19.90).
 const PLAN = {
   name: "Premium",
   description: "Acesso Premium mensal",

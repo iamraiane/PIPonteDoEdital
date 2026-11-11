@@ -60,6 +60,16 @@ export const UserEntity = new EntitySchema({
       type: "timestamp",
       createDate: true,
     },
+        avatar_blob: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+    avatar_url: {
+      type: "varchar",
+      length: 500,
+      nullable: true,
+    },
   },
   relations: {
     subscriptions: {

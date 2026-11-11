@@ -1,9 +1,11 @@
-import { AuthController } from "../controllers/userController.js";
+import { AuthController, AvatarController } from "../controllers/userController.js";
 import express from "express";
-import { authMiddleware } from "../utils/auth.js";
+import { authMiddleware} from "../utils/auth.js";
 import { checkRole } from "../middlewares/checkRoles.js";
+import { uploadAvatar } from "../config/upload.js";
 
 const authController = new AuthController();
+const avatarController = new AvatarController();
 const router = express.Router();
 
 router.post("/login", authController.login);
@@ -30,5 +32,8 @@ router.post("/auth/reset-password", authController.resetPassword);
 router.post("/verify-email", authController.verifyEmail);router.post("/change-email", authMiddleware, authController.toChangeYourEmail);
 router.post("/confirm-email-change", authController.confirmEmailChange);
 router.post("/resend-verification", authController.resendVerificationEmail);
+
+router.put("/:id/avatar", authMiddleware, uploadAvatar.single("avatar"), avatarController.updateAvatar);
+router.delete("/:id/avatar", authMiddleware, avatarController.removeAvatar);
 
 export default router;

@@ -175,6 +175,96 @@ export function DashIcon({ name }: { name: string }) {
           style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
         />
       )
+    // ---------- ícones de preferências (SVGs com currentColor) ----------
+    case 'tech':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="13" rx="2" />
+          <rect x="5.5" y="6.5" width="13" height="8.5" rx="1" />
+          <circle cx="12" cy="16" r="0.7" fill="currentColor" stroke="none" />
+          <path d="M10 17l-.8 3h5.6l-.8-3" />
+          <path d="M8.5 20h7" />
+        </svg>
+      )
+    case 'saude':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 3v6c0 3.3 1.8 6 4 6s4-2.7 4-6V3" />
+          <path d="M9 15v3c0 3 2.2 5.5 5 5.5s5-2.5 5-5.5v-2" />
+          <circle cx="19" cy="13" r="3" />
+        </svg>
+      )
+    case 'educacao':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z" />
+          <path d="M7 10v4.5c0 2.5 2.2 4.5 5 4.5s5-2 5-4.5V10" />
+          <path d="M19 8.5v4.5" />
+          <circle cx="19" cy="14.3" r="1.3" />
+        </svg>
+      )
+    case 'infraestrutura':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 11.5h20" />
+          <rect x="3" y="6.5" width="3.5" height="5" />
+          <path d="M7.5 11.5V6L10 3.5 12.5 6v5.5" />
+          <rect x="14" y="3" width="3.5" height="8.5" />
+          <rect x="18.5" y="6.5" width="3" height="5" />
+          <rect x="15" y="4.5" width="1.5" height="1.5" fill="currentColor" stroke="none" />
+          <rect x="15" y="7" width="1.5" height="1.5" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="17.5" r="3" />
+          <path d="M12 14.5v-1.5M12 20.5v1.5M9 17.5H7.5M15 17.5h1.5M10 15.5l-1-1M14 15.5l1-1M10 19.5l-1 1M14 19.5l1 1" />
+        </svg>
+      )
+    case 'cultura':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3.5 7c0-1.5 1.5-2.5 3.5-2.5h3.5c2 0 3.5 1 3.5 2.5v4.5c0 3.5-2.5 6-5.25 6S3.5 15 3.5 11.5V7z" />
+          <path d="M13 9.5c0-1.5 1.5-2.5 3.5-2.5H20c2 0 3.5 1 3.5 2.5V14c0 3.5-2.5 6-5.25 6S13 17.5 13 14V9.5z" />
+          <path d="M6 9.5q1-1 2 0M9 9.5q1-1 2 0" />
+          <path d="M6 13q1.75 2.5 3.5 0" />
+          <path d="M15.5 12q1 1 2 0M18.5 12q1 1 2 0" />
+          <path d="M16 15.5q1.75-2.5 3.5 0" />
+        </svg>
+      )
+    case 'servicos':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5.2 4.6 7.8 2.1H18.5V4" />
+          <path d="M7.8 2.1V4.6H5.2" />
+          <path d="M5.2 4.6V8.2" />
+          <path d="M5.2 16v6.5h13.3" />
+          <rect x="1.1" y="8.2" width="10" height="7.8" />
+          <path d="M1.1 8.2 11.1 16M11.1 8.2 1.1 16" />
+          <rect x="13.6" y="4" width="9" height="8.9" />
+          <path d="M15.4 6.4h5.5M15.4 8.7h5.5M15.4 11h5.5" />
+          <circle cx="18.9" cy="18" r="4.4" />
+          <circle cx="18.9" cy="18" r="2" />
+        </svg>
+      )
+    case 'consultoria':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="7" y="2.5" width="10" height="7.5" rx="1.5" />
+          <path d="M12 10v2.5l-2-1.5" />
+          <path d="M9.5 5h5M9.5 7.5h3.5" />
+          <circle cx="6.5" cy="15.5" r="2.5" />
+          <path d="M2 22c0-2.5 2-4.5 4.5-4.5S11 19.5 11 22" />
+          <circle cx="17.5" cy="15.5" r="2.5" />
+          <path d="M13 22c0-2.5 2-4.5 4.5-4.5S22 19.5 22 22" />
+        </svg>
+      )
+    case 'engenharia':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="7.5" cy="12" r="5" />
+          <circle cx="7.5" cy="12" r="1.8" />
+          <path d="M7.5 7V5.6M7.5 17v1.4M2.5 12H1.1M12.5 12h1.4M3.96 8.46 3.11 7.61M11.04 8.46l.85-.85M3.96 15.54 3.11 16.39M11.04 15.54l.85.85" />
+          <path d="M13.5 21 17.38 9.12" />
+          <path d="M19.24 4.01A3 3 0 1 0 22.49 7.26" />
+        </svg>
+      )
     default:
       return null
   }

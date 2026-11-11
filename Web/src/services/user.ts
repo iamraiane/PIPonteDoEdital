@@ -67,6 +67,7 @@ export type UserData = {
   preferences: string[]
   role: string
   active: boolean
+  avatar_url?: string | null
 }
 
 export type SubscriptionData = {
@@ -94,6 +95,25 @@ export async function getUserSubscription(id: number): Promise<SubscriptionData>
 
 export async function getUserById(id: number): Promise<UserData> {
   return authRequest<UserData>(`users/${id}`)
+}
+
+export async function uploadAvatar(id: number, file: File): Promise<{ avatar_url: string }> {
+  const token = localStorage.getItem('token')
+  const body = new FormData()
+  body.append('avatar', file)
+  const res = await fetch(`${API_BASE}/${id}/avatar`, {
+    method: 'PUT',
+    body,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    throw await toApiError(res)
+  }
+  return res.json() as Promise<{ avatar_url: string }>
+}
+
+export async function removeAvatar(id: number): Promise<{ message: string }> {
+  return authRequest<{ message: string }>(`${id}/avatar`, { method: 'DELETE' })
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {

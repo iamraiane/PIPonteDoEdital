@@ -36,11 +36,22 @@ const NAV_ITEMS: { key: PageKey; label: string; icon: string; premium?: boolean 
 const MOBILE_PRIMARY_KEYS: PageKey[] = ['feed', 'calendar', 'saved', 'plans']
 const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) => !MOBILE_PRIMARY_KEYS.includes(item.key))
 
+const ICONE_POR_INTERESSE: Record<string, string> = {
+  Tecnologia: 'tech',
+  Educação: 'educacao',
+  Saúde: 'saude',
+  Infraestrutura: 'infraestrutura',
+  Cultura: 'cultura',
+  Serviços: 'servicos',
+  Consultoria: 'consultoria',
+  Engenharia: 'engenharia',
+}
+
 export default function DashboardShell({
   active,
   onNavigate,
   userName,
-  preference,
+  interesses,
   avatarUrl,
   hasPremium,
   userActive = true,
@@ -51,7 +62,7 @@ export default function DashboardShell({
   active: PageKey
   onNavigate: (page: PageKey) => void
   userName: string
-  preference?: string
+  interesses?: string[]
   avatarUrl?: string | null
   hasPremium?: boolean
   userActive?: boolean
@@ -469,7 +480,20 @@ export default function DashboardShell({
 
           <div className="pdd-pref-card">
             <p className="pdd-pref-card__title">Suas preferências</p>
-            <p className="pdd-pref-card__value">{preference || 'Nenhuma preferência definida'}</p>
+            <div className="pdd-pref-icons">
+              {(interesses ?? []).map((item) => (
+                <span
+                  key={item}
+                  className="pdd-pref-icon"
+                  title={item}
+                >
+                  <DashIcon name={ICONE_POR_INTERESSE[item] ?? 'tech'} />
+                </span>
+              ))}
+              {(interesses ?? []).length === 0 && (
+                <p className="pdd-pref-card__value">Nenhuma preferência definida</p>
+              )}
+            </div>
             <button type="button" className="pdd-pref-card__cta" onClick={() => { setFiltersOpen(false); onNavigate('profile') }}>
               Ajustar preferências
             </button>

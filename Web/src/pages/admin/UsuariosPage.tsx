@@ -177,7 +177,11 @@ export default function UsuariosPage() {
               <tr key={u.id} style={{ animationDelay: `${i * 40}ms` }}>
                 <td data-label="Usuário">
                   <div className="pda-cell pda-user-cell">
-                    <span className="pda-avatar">{iniciais(u.name)}</span>
+                    {u.avatar_url ? (
+                      <img className="pda-avatar pda-avatar--img" src={u.avatar_url} alt="" />
+                    ) : (
+                      <span className="pda-avatar">{iniciais(u.name)}</span>
+                    )}
                     <span className="pda-cell-title">{u.name}</span>
                   </div>
                 </td>

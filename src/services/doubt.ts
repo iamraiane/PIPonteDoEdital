@@ -51,6 +51,39 @@ export async function createDoubt(content: string): Promise<Doubt> {
   })
 }
 
+export async function updateDoubt(id: number, content: string): Promise<Doubt> {
+  return authRequest<Doubt>(`doubts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  })
+}
+
+export async function deleteDoubt(id: number): Promise<{ message: string }> {
+  return authRequest<{ message: string }>(`doubts/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function updateAnswer(
+  doubtId: number,
+  answerId: number,
+  content: string,
+): Promise<DoubtAnswer> {
+  return authRequest<DoubtAnswer>(`doubts/${doubtId}/answers/${answerId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  })
+}
+
+export async function deleteAnswer(
+  doubtId: number,
+  answerId: number,
+): Promise<{ message: string }> {
+  return authRequest<{ message: string }>(`doubts/${doubtId}/answers/${answerId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function answerDoubt(doubtId: number, content: string): Promise<DoubtAnswer> {
   return authRequest<DoubtAnswer>(`doubts/${doubtId}/answers`, {
     method: 'POST',

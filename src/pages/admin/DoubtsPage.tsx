@@ -1,5 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getDoubts, answerDoubt, type Doubt } from '../../services/doubt'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import {
+  getDoubts,
+  answerDoubt,
+  updateDoubt,
+  deleteDoubt,
+  updateAnswer,
+  deleteAnswer,
+  type Doubt,
+  type DoubtAnswer,
+} from '../../services/doubt'
 import { timeAgo } from '../../utils/timeAgo'
 import { Spinner } from '../../components/AppLoader'
 import './EditaisPage.css'
@@ -13,6 +22,10 @@ const FILTROS: { key: Filtro; label: string }[] = [
   { key: 'todas', label: 'Todas' },
 ]
 
+const ASSUNTO_MAX = 60
+const DESCRICAO_MAX = 500
+const ANSWER_MAX = 1000
+
 export default function DoubtsPage() {
   const [doubts, setDoubts] = useState<Doubt[]>([])
   const [filtro, setFiltro] = useState<Filtro>('abertas')
@@ -21,6 +34,15 @@ export default function DoubtsPage() {
   const [enviando, setEnviando] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [editando, setEditando] = useState<Doubt | null>(null)
+  const [editAssunto, setEditAssunto] = useState('')
+  const [editDescricao, setEditDescricao] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const [excluindo, setExcluindo] = useState<number | null>(null)
+  const [editandoResposta, setEditandoResposta] = useState<DoubtAnswer | null>(null)
+  const [editRespostaConteudo, setEditRespostaConteudo] = useState('')
+  const [salvandoResposta, setSalvandoResposta] = useState(false)
+  const [excluindoResposta, setExcluindoResposta] = useState<number | null>(null)
 
   const avisar = useCallback((msg: string) => {
     setToast(msg)
@@ -57,6 +79,96 @@ export default function DoubtsPage() {
       avisar(err instanceof Error ? err.message : 'Erro ao enviar resposta')
     } finally {
       setEnviando(false)
+    }
+  }
+
+  function abrirEdicao(d: Doubt) {
+    const [assunto, ...resto] = d.content.split('\n\n')
+    setEditando(d)
+    setEditAssunto(assunto ?? '')
+    setEditDescricao(resto.join('\n\n'))
+    setSalvando(false)
+  }
+
+  function fecharEdicao() {
+    setEditando(null)
+    setSalvando(false)
+  }
+
+  async function handleEditar(e: FormEvent) {
+    e.preventDefault()
+    if (!editando || !editAssunto.trim() || !editDescricao.trim() || salvando) return
+    setSalvando(true)
+    try {
+      await updateDoubt(editando.id, `${editAssunto.trim()}\n\n${editDescricao.trim()}`)
+      const atualizadas = await getDoubts()
+      setDoubts(atualizadas)
+      fecharEdicao()
+      avisar('Dúvida atualizada')
+    } catch (err) {
+      setSalvando(false)
+      avisar(err instanceof Error ? err.message : 'Erro ao editar dúvida')
+    }
+  }
+
+  async function handleExcluir(d: Doubt) {
+    if (excluindo !== null) return
+    const confirmado = window.confirm('Tem certeza que deseja excluir esta dúvida?')
+    if (!confirmado) return
+    setExcluindo(d.id)
+    try {
+      await deleteDoubt(d.id)
+      const atualizadas = await getDoubts()
+      setDoubts(atualizadas)
+      avisar('Dúvida excluída')
+    } catch (err) {
+      avisar(err instanceof Error ? err.message : 'Erro ao excluir dúvida')
+    } finally {
+      setExcluindo(null)
+    }
+  }
+
+  function abrirEdicaoResposta(a: DoubtAnswer) {
+    setEditandoResposta(a)
+    setEditRespostaConteudo(a.content)
+    setSalvandoResposta(false)
+  }
+
+  function fecharEdicaoResposta() {
+    setEditandoResposta(null)
+    setSalvandoResposta(false)
+  }
+
+  async function handleEditarResposta(e: FormEvent) {
+    e.preventDefault()
+    if (!editandoResposta || !editRespostaConteudo.trim() || salvandoResposta) return
+    setSalvandoResposta(true)
+    try {
+      await updateAnswer(editandoResposta.doubt_id, editandoResposta.id, editRespostaConteudo.trim())
+      const atualizadas = await getDoubts()
+      setDoubts(atualizadas)
+      fecharEdicaoResposta()
+      avisar('Resposta atualizada')
+    } catch (err) {
+      setSalvandoResposta(false)
+      avisar(err instanceof Error ? err.message : 'Erro ao editar resposta')
+    }
+  }
+
+  async function handleExcluirResposta(a: DoubtAnswer) {
+    if (excluindoResposta !== null) return
+    const confirmado = window.confirm('Tem certeza que deseja excluir esta resposta?')
+    if (!confirmado) return
+    setExcluindoResposta(a.id)
+    try {
+      await deleteAnswer(a.doubt_id, a.id)
+      const atualizadas = await getDoubts()
+      setDoubts(atualizadas)
+      avisar('Resposta excluída')
+    } catch (err) {
+      avisar(err instanceof Error ? err.message : 'Erro ao excluir resposta')
+    } finally {
+      setExcluindoResposta(null)
     }
   }
 
@@ -107,6 +219,23 @@ export default function DoubtsPage() {
                   >
                     {d.answers.length > 0 ? 'Respondida' : 'Aberta'}
                   </span>
+                  <span className="pda-doubt-card__actions">
+                    <button
+                      type="button"
+                      className="pda-doubt-card__action"
+                      onClick={() => abrirEdicao(d)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="pda-doubt-card__action pda-doubt-card__action--danger"
+                      disabled={excluindo === d.id}
+                      onClick={() => handleExcluir(d)}
+                    >
+                      {excluindo === d.id ? 'Excluindo…' : 'Excluir'}
+                    </button>
+                  </span>
                 </header>
 
                 <p className="pda-doubt-card__content">{d.content}</p>
@@ -118,6 +247,23 @@ export default function DoubtsPage() {
                         <div className="pda-doubt-card__answer-head">
                           <span className="pda-doubt-card__answer-label">Equipe</span>
                           <span className="pda-doubt-card__date">{timeAgo(a.created_at)}</span>
+                          <span className="pda-doubt-card__answer-actions">
+                            <button
+                              type="button"
+                              className="pda-doubt-card__action"
+                              onClick={() => abrirEdicaoResposta(a)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className="pda-doubt-card__action pda-doubt-card__action--danger"
+                              disabled={excluindoResposta === a.id}
+                              onClick={() => handleExcluirResposta(a)}
+                            >
+                              {excluindoResposta === a.id ? 'Excluindo…' : 'Excluir'}
+                            </button>
+                          </span>
                         </div>
                         <p className="pda-doubt-card__answer-content">{a.content}</p>
                       </li>
@@ -183,6 +329,113 @@ export default function DoubtsPage() {
       )}
 
       {toast && <div className="pda-toast">{toast}</div>}
+
+      {editando && (
+        <div className="pda-doubt-edit-backdrop" onClick={fecharEdicao}>
+          <div
+            className="pda-doubt-edit"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Editar dúvida"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="pda-doubt-edit__title">Editar dúvida</h2>
+            <form onSubmit={handleEditar}>
+              <label className="pda-doubt-edit__field">
+                <span>Assunto</span>
+                <input
+                  type="text"
+                  value={editAssunto}
+                  onChange={(e) => setEditAssunto(e.target.value)}
+                  maxLength={ASSUNTO_MAX}
+                  autoFocus
+                />
+                <span className="pda-counter">
+                  {editAssunto.length} / {ASSUNTO_MAX}
+                </span>
+              </label>
+
+              <label className="pda-doubt-edit__field">
+                <span>Descrição</span>
+                <textarea
+                  value={editDescricao}
+                  onChange={(e) => setEditDescricao(e.target.value)}
+                  rows={4}
+                  maxLength={DESCRICAO_MAX}
+                />
+                <span className="pda-counter">
+                  {editDescricao.length} / {DESCRICAO_MAX}
+                </span>
+              </label>
+
+              <div className="pda-doubt-edit__actions">
+                <button
+                  type="button"
+                  className="pda-btn pda-btn--outline"
+                  onClick={fecharEdicao}
+                  disabled={salvando}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="pda-btn pda-btn--teal"
+                  disabled={salvando || !editAssunto.trim() || !editDescricao.trim()}
+                >
+                  {salvando ? 'Salvando…' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editandoResposta && (
+        <div className="pda-doubt-edit-backdrop" onClick={fecharEdicaoResposta}>
+          <div
+            className="pda-doubt-edit"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Editar resposta"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="pda-doubt-edit__title">Editar resposta</h2>
+            <form onSubmit={handleEditarResposta}>
+              <label className="pda-doubt-edit__field">
+                <span>Sua resposta</span>
+                <textarea
+                  value={editRespostaConteudo}
+                  onChange={(e) => setEditRespostaConteudo(e.target.value)}
+                  rows={4}
+                  maxLength={ANSWER_MAX}
+                  autoFocus
+                />
+                <span className="pda-counter">
+                  {editRespostaConteudo.length} / {ANSWER_MAX}
+                </span>
+              </label>
+
+              <div className="pda-doubt-edit__actions">
+                <button
+                  type="button"
+                  className="pda-btn pda-btn--outline"
+                  onClick={fecharEdicaoResposta}
+                  disabled={salvandoResposta}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="pda-btn pda-btn--teal"
+                  disabled={salvandoResposta || !editRespostaConteudo.trim()}
+                >
+                  {salvandoResposta ? 'Salvando…' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

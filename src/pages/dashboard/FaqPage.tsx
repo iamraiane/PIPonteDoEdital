@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { DashIcon } from './Icons'
-import { getDoubts, createDoubt, type Doubt } from '../../services/doubt'
+import { getDoubts, createDoubt, updateDoubt, deleteDoubt, type Doubt } from '../../services/doubt'
+import { getTokenPayload } from '../../services/user'
 import { timeAgo } from '../../utils/timeAgo'
 import './FaqPage.css'
 
@@ -35,6 +36,20 @@ export default function FaqPage() {
   const [error, setError] = useState('')
   const [doubts, setDoubts] = useState<Doubt[]>([])
   const [loadingDoubts, setLoadingDoubts] = useState(true)
+  const [editando, setEditando] = useState<Doubt | null>(null)
+  const [editAssunto, setEditAssunto] = useState('')
+  const [editDescricao, setEditDescricao] = useState('')
+  const [editStatus, setEditStatus] = useState<'idle' | 'sending'>('idle')
+  const [editError, setEditError] = useState('')
+  const [excluindo, setExcluindo] = useState<number | null>(null)
+
+  const payload = getTokenPayload()
+  const userId = payload?.id ?? null
+  const isAdmin = payload?.role === 'admin'
+
+  function podeModificar(d: Doubt) {
+    return isAdmin || (userId !== null && d.user_id === userId)
+  }
 
   useEffect(() => {
     getDoubts()
@@ -90,6 +105,50 @@ export default function FaqPage() {
   const sortedDoubts = [...doubts].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   )
+
+  function abrirEdicao(d: Doubt) {
+    const [assunto, ...resto] = d.content.split('\n\n')
+    setEditando(d)
+    setEditAssunto(assunto ?? '')
+    setEditDescricao(resto.join('\n\n'))
+    setEditStatus('idle')
+    setEditError('')
+  }
+
+  function fecharEdicao() {
+    setEditando(null)
+    setEditError('')
+  }
+
+  async function handleEditar(e: FormEvent) {
+    e.preventDefault()
+    if (!editando || !editAssunto.trim() || !editDescricao.trim()) return
+    setEditStatus('sending')
+    setEditError('')
+    try {
+      await updateDoubt(editando.id, `${editAssunto.trim()}\n\n${editDescricao.trim()}`)
+      refreshDoubts()
+      fecharEdicao()
+    } catch (err) {
+      setEditStatus('idle')
+      setEditError(err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.')
+    }
+  }
+
+  async function handleExcluir(d: Doubt) {
+    if (excluindo !== null) return
+    const confirmado = window.confirm('Tem certeza que deseja excluir esta dúvida?')
+    if (!confirmado) return
+    setExcluindo(d.id)
+    try {
+      await deleteDoubt(d.id)
+      refreshDoubts()
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível excluir. Tente novamente.')
+    } finally {
+      setExcluindo(null)
+    }
+  }
 
   return (
     <div className="pdd-faq-page">
@@ -163,6 +222,25 @@ export default function FaqPage() {
                     >
                       {answered ? 'Respondida' : 'Aguardando resposta'}
                     </span>
+                    {podeModificar(d) && (
+                      <span className="pdd-faq-doubts__actions">
+                        <button
+                          type="button"
+                          className="pdd-faq-doubts__action"
+                          onClick={() => abrirEdicao(d)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="pdd-faq-doubts__action pdd-faq-doubts__action--danger"
+                          disabled={excluindo === d.id}
+                          onClick={() => handleExcluir(d)}
+                        >
+                          {excluindo === d.id ? 'Excluindo…' : 'Excluir'}
+                        </button>
+                      </span>
+                    )}
                   </div>
 
                   <p className="pdd-faq-doubts__content">{d.content}</p>
@@ -246,6 +324,74 @@ export default function FaqPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {createPortal(
+        <div
+          className={`pdd-faq-modal-backdrop ${editando ? 'is-open' : ''}`}
+          onClick={fecharEdicao}
+        >
+          <div
+            className={`pdd-faq-modal ${editando ? 'is-open' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Editar pergunta"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <form onSubmit={handleEditar}>
+              <label className="pdd-faq-modal__field">
+                <span>Assunto</span>
+                <input
+                  type="text"
+                  value={editAssunto}
+                  onChange={(e) => setEditAssunto(e.target.value)}
+                  placeholder="Ex: Problema ao salvar um edital"
+                  maxLength={ASSUNTO_MAX}
+                  autoFocus={!!editando}
+                />
+                <span className="pdd-faq-modal__counter">
+                  {editAssunto.length} / {ASSUNTO_MAX}
+                </span>
+              </label>
+
+              <label className="pdd-faq-modal__field">
+                <span>Descreva o que está acontecendo</span>
+                <textarea
+                  value={editDescricao}
+                  onChange={(e) => setEditDescricao(e.target.value)}
+                  placeholder="Conte com detalhes o que você está vivenciando"
+                  rows={4}
+                  maxLength={DESCRICAO_MAX}
+                />
+                <span className="pdd-faq-modal__counter">
+                  {editDescricao.length} / {DESCRICAO_MAX}
+                </span>
+              </label>
+
+              {editError && <p className="pdd-faq-modal__error">{editError}</p>}
+
+              <div className="pdd-faq-modal__actions pdd-faq-modal__actions--split">
+                <button
+                  type="button"
+                  className="pdd-faq-modal__cancel"
+                  onClick={fecharEdicao}
+                  disabled={editStatus === 'sending'}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={`pdd-faq-modal__submit ${editStatus === 'sending' ? 'is-loading' : ''}`}
+                  disabled={editStatus === 'sending'}
+                >
+                  <span className="pdd-faq-modal__submit-label">Salvar</span>
+                  <span className="pdd-faq-modal__spinner" aria-hidden="true" />
+                </button>
+              </div>
+            </form>
           </div>
         </div>,
         document.body,

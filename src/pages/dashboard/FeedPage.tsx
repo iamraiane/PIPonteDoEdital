@@ -7,6 +7,7 @@ import { getFavorites, addFavorite, removeFavorite } from '../../services/favori
 import { prewarmGoogleToken, insertGoogleEvent, deleteGoogleEvent } from '../../services/googleCalendar'
 import { useFeedFilters } from './feedFilterStore'
 
+/** Estrutura de um edital já normalizada para exibição no feed. */
 type Edital = {
   id: string
   orgao: string
@@ -24,6 +25,10 @@ type Edital = {
   link: string
 }
 
+/**
+ * Monta a saudação de acordo com a hora atual do relógio.
+ * @returns "Bom dia", "Boa tarde" ou "Boa noite".
+ */
 function getGreeting(): string {
   const hour = new Date().getHours()
   if (hour >= 12 && hour < 18) return 'Boa tarde'
@@ -31,6 +36,11 @@ function getGreeting(): string {
   return 'Bom dia'
 }
 
+/**
+ * Converte uma data em texto relativo ("há 5 min", "há 2h", "há 3 dias").
+ * @param dateStr - Data em formato ISO ou null.
+ * @returns Texto de tempo relativo ou string vazia.
+ */
 function formatTimeAgo(dateStr: string | null): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
@@ -44,6 +54,11 @@ function formatTimeAgo(dateStr: string | null): string {
   return `há ${diffD} dias`
 }
 
+/**
+ * Formata a data do prazo no padrão brasileiro curto (ex.: "12 out. 2026").
+ * @param dateStr - Data em formato ISO ou null.
+ * @returns Data formatada ou "Sem prazo" quando não há data.
+ */
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Sem prazo'
   const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
@@ -53,6 +68,11 @@ function formatDate(dateStr: string | null): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+/**
+ * Extrai o número do mês (1-12) a partir de uma data.
+ * @param dateStr - Data em formato ISO ou null.
+ * @returns Mês de 1 a 12 ou null quando a data é inválida/ausente.
+ */
 function monthFromDate(dateStr: string | null): number | null {
   if (!dateStr) return null
   const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
@@ -61,10 +81,22 @@ function monthFromDate(dateStr: string | null): number | null {
   return Number.isNaN(date.getTime()) ? null : date.getMonth() + 1
 }
 
+/**
+ * Remove acentos e converte o texto para minúsculas, para comparações estáveis.
+ * @param value - Texto de entrada.
+ * @returns Texto normalizado sem acentos e em minúsculas.
+ */
 function normalizeText(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
+/**
+ * Converte um edital da API para o formato exibido no feed, calculando o
+ * destaque "Recomendado" conforme os interesses do usuário.
+ * @param n - Edital retornado pela API.
+ * @param preferences - Áreas de interesse do usuário.
+ * @returns Edital pronto para renderização.
+ */
 function mapNoticeToEdital(n: NoticeApi, preferences: string[]): Edital {
   const temas = Array.isArray(n.themes) ? n.themes : []
   const prefNorm = preferences.map(normalizeText)
@@ -88,21 +120,44 @@ function mapNoticeToEdital(n: NoticeApi, preferences: string[]): Edital {
   }
 }
 
+/**
+ * Verifica se o edital corresponde ao texto digitado na busca.
+ * @param e - Edital a testar.
+ * @param queryNorm - Consulta já normalizada (sem acentos, minúscula).
+ * @returns true se o edital casa com a consulta ou se a consulta estiver vazia.
+ */
 function matchesQuery(e: Edital, queryNorm: string): boolean {
   if (!queryNorm) return true
   return normalizeText(e.orgao).includes(queryNorm) || normalizeText(e.titulo).includes(queryNorm)
 }
 
+/**
+ * Verifica se o edital está no intervalo de meses filtrado.
+ * @param e - Edital a testar.
+ * @param months - Meses selecionados no filtro (1-12).
+ * @returns true se nenhum mês estiver filtrado ou se o mês do prazo estiver incluído.
+ */
 function matchesMonths(e: Edital, months: number[]): boolean {
   return months.length === 0 || (e.mes !== null && months.includes(e.mes))
 }
 
+/**
+ * Verifica se o edital pertence a um dos estados filtrados.
+ * @param e - Edital a testar.
+ * @param states - UFs selecionadas no filtro.
+ * @returns true se nenhum estado estiver filtrado ou se a UF do edital estiver incluída.
+ */
 function matchesStates(e: Edital, states: string[]): boolean {
   return states.length === 0 || states.includes(e.tag)
 }
 
+/** Lista vazia usada como valor padrão para os interesses do usuário. */
 const NO_PREFERENCES: string[] = []
 
+/**
+ * Página do feed de editais: saudação, filtros compartilhados, lista de cards
+ * com salvamento (e sincronização com a Google Agenda) e chamada ao Premium.
+ */
 export default function FeedPage({ userName, userId, hasPremium = false, userActive = true, preferences = NO_PREFERENCES, onNavigate }: { userName: string; userId?: number; hasPremium?: boolean; userActive?: boolean; preferences?: string[]; onNavigate?: (page: string) => void }) {
   const { query, months, states, setCounts, activeCount, clearFilters } = useFeedFilters()
   const [salvos, setSalvos] = useState<Record<string, boolean>>({})
@@ -112,6 +167,9 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
   const [favoriteError, setFavoriteError] = useState<string | null>(null)
   const [showLimitModal, setShowLimitModal] = useState(false)
 
+  /**
+   * Carrega os editais da API e marca os que já estão nos favoritos do usuário.
+   */
   useEffect(() => {
     if (!userId) return
     Promise.all([
@@ -128,6 +186,11 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
       .finally(() => setLoading(false))
   }, [userId, preferences])
 
+  /**
+   * Alterna o edital entre salvo e não salvo, espelhando a mudança no Google
+   * Agenda e revertendo em caso de falha (ex.: limite de favoritos).
+   * @param id - Identificador do edital.
+   */
   function toggleSalvo(id: string) {
     const noticeId = parseInt(id)
     const isSaved = salvos[id]
@@ -164,11 +227,16 @@ export default function FeedPage({ userName, userId, hasPremium = false, userAct
       })
   }
 
+  /** Texto da busca já normalizado, usado nas comparações de filtro. */
   const queryNorm = normalizeText(query.trim())
+  /** Editais que passam por todos os filtros ativos (busca, meses e estados). */
   const filteredEditais = editais.filter(
     (e) => matchesQuery(e, queryNorm) && matchesMonths(e, months) && matchesStates(e, states),
   )
 
+  /**
+   * Recalcula a contagem de editais por mês e por estado para exibir nos filtros.
+   */
   useEffect(() => {
     const monthCounts: Record<number, number> = {}
     const stateCounts: Record<string, number> = {}

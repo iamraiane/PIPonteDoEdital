@@ -5,6 +5,11 @@ import logoPonte from '../assets/logo-ponte.png'
 import { verifyEmail, resendVerificationEmail } from '../services/user'
 import './VerifyEmailPage.css'
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone ('check', 'mail', 'x' ou 'arrow').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'check':
@@ -37,6 +42,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Página de verificação de e-mail: valida o token recebido por link,
+ * exibe os estados de carregamento, sucesso ou erro e permite reenviar
+ * o e-mail de verificação quando o link é inválido ou expirou.
+ */
 export default function VerifyEmailPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -54,11 +64,18 @@ export default function VerifyEmailPage() {
   const [resendMessage, setResendMessage] = useState<string | null>(null)
   const [resendError, setResendError] = useState<string | null>(null)
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /**
+   * Dispara a verificação do token de e-mail obtido da URL.
+   * Sem token, o estado de erro já é mantido a partir da inicialização.
+   */
   useEffect(() => {
     if (!token) return
 
@@ -70,6 +87,11 @@ export default function VerifyEmailPage() {
       })
   }, [token])
 
+  /**
+   * Valida o e-mail informado e solicita o reenvio do link de verificação.
+   * Exibe mensagens de sucesso, erro ou de limite de tempo entre envios.
+   * @param e - Evento de envio do formulário.
+   */
   async function handleResendVerification(e: React.FormEvent) {
     e.preventDefault()
     setResendError(null)

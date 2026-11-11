@@ -7,10 +7,20 @@ import { Spinner } from '../../components/AppLoader'
 import './EditaisPage.css'
 import './UsuariosPage.css'
 
+/**
+ * Extrai as iniciais (até 2 palavras) de um nome para o avatar.
+ * @param nome - Nome completo do usuário.
+ * @returns As iniciais em maiúsculas.
+ */
 function iniciais(nome: string) {
   return nome.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
 }
 
+/**
+ * Página administrativa de usuários: lista os cadastrados com busca e
+ * filtro de exibição, permitindo ajustar permissões (admin/premium),
+ * ativar/desativar e excluir contas.
+ */
 export default function UsuariosPage() {
   const navigate = useNavigate()
   const currentUserId = getTokenPayload()?.id
@@ -22,11 +32,19 @@ export default function UsuariosPage() {
   const [toast, setToast] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  /**
+   * Exibe uma mensagem temporária em toast e a remove após 2,2 segundos.
+   * @param msg - Texto da mensagem a ser exibida.
+   */
   const avisar = useCallback((msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 2200)
   }, [])
 
+  /**
+   * Carrega a lista completa de usuários ao montar o componente,
+   * exibindo toast de erro caso a requisição falhe.
+   */
   useEffect(() => {
     getAllUsers()
       .then((data) => setUsuarios(data))
@@ -37,13 +55,23 @@ export default function UsuariosPage() {
       .finally(() => setLoading(false))
   }, [avisar])
 
+  /** Termo de busca em minúsculas usado para filtrar a tabela. */
   const termo = busca.toLowerCase()
+  /** Usuários que atendem à busca por nome/e-mail e ao filtro de exibição. */
   const filtrados = usuarios.filter((u) => {
     const bate = u.name.toLowerCase().includes(termo) || u.email.toLowerCase().includes(termo)
     if (!mostrarTodos) return bate && u.role === 'user'
     return bate
   })
 
+  /**
+   * Aplica as mudanças de papel e de ativação de um usuário no servidor.
+   * Impede que o admin desative ou remova a própria conta.
+   * @param id - Identificador do usuário.
+   * @param isAdmin - Define o papel de administrador.
+   * @param isPremium - Define o plano premium.
+   * @param ativo - Define se a conta está ativa.
+   */
   async function salvarStatus(id: number, isAdmin: boolean, isPremium: boolean, ativo: boolean) {
     try {
       const original = usuarios.find((u) => u.id === id)
@@ -88,6 +116,11 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Converte o papel do usuário em rótulo exibido na coluna de status.
+   * @param role - Papel do usuário ('admin', 'premium' ou outro).
+   * @returns O texto do rótulo correspondente.
+   */
   function getRoleLabel(role: string) {
     switch (role) {
       case 'admin':
@@ -99,6 +132,10 @@ export default function UsuariosPage() {
     }
   }
 
+  /**
+   * Exclui o usuário selecionado no servidor, impedindo a exclusão
+   * da própria conta do admin logado.
+   */
   async function handleExcluir() {
     if (!excluindo) return
     if (excluindo.id === currentUserId) {
@@ -228,6 +265,14 @@ export default function UsuariosPage() {
   )
 }
 
+/**
+ * Painel lateral de ajuste de status de um usuário: interruptores de
+ * admin, premium e conta ativa, com opção de excluir a conta.
+ * @param usuario - Usuário cujo status será ajustado.
+ * @param onCancel - Callback para fechar o painel sem salvar.
+ * @param onSave - Callback que recebe o estado escolhido ao salvar.
+ * @param onExcluir - Callback acionado para excluir o usuário.
+ */
 function EditarStatusPanel({
   usuario,
   onCancel,
@@ -239,11 +284,19 @@ function EditarStatusPanel({
   onSave: (id: number, isAdmin: boolean, isPremium: boolean, ativo: boolean) => void
   onExcluir: () => void
 }) {
+  /** Estado local do interruptor de administrador. */
   const [isAdmin, setIsAdmin] = useState(usuario.role === 'admin')
+  /** Estado local do interruptor de plano premium. */
   const [isPremium, setIsPremium] = useState(usuario.role === 'premium')
+  /** Estado local do interruptor de conta ativa. */
   const [ativo, setAtivo] = useState(usuario.active !== false)
+  /** Indica se o painel está sendo usado pelo próprio usuário logado. */
   const isSelf = usuario.id === getTokenPayload()?.id
 
+  /**
+   * Alterna o papel de admin e desativa o premium ao habilitá-lo,
+   * já que admins possuem acesso premium por padrão.
+   */
   function toggleAdmin() {
     const next = !isAdmin
     setIsAdmin(next)
@@ -344,6 +397,12 @@ function EditarStatusPanel({
   )
 }
 
+/**
+ * Modal de confirmação de exclusão de um usuário.
+ * @param nome - Nome do usuário a ser excluído (exibido na mensagem).
+ * @param onCancel - Callback para cancelar a exclusão.
+ * @param onConfirm - Callback para confirmar a exclusão.
+ */
 function ConfirmarExclusaoUsuarioModal({
   nome,
   onCancel,

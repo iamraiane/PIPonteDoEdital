@@ -3,21 +3,38 @@ import { Link } from 'react-router-dom'
 import { syncSubscriptions } from '../services/subscription'
 import './PremiumReturnPage.css'
 
+/** Possíveis estados exibidos na página de retorno do pagamento premium. */
 type Phase = 'checking' | 'success' | 'pending' | 'none' | 'error'
 
+/** Número máximo de tentativas de verificação automática da assinatura. */
 const MAX_ATTEMPTS = 10
+/** Intervalo em milissegundos entre cada nova tentativa de verificação. */
 const RETRY_MS = 4000
 
+/**
+ * Página de retorno após o pagamento premium: sincroniza a assinatura
+ * com o Mercado Pago, repetindo a verificação até encontrar a ativação
+ * ou exibindo os estados de sucesso, pendência, ausência e erro.
+ */
 export default function PremiumReturnPage() {
   const [phase, setPhase] = useState<Phase>('checking')
   const [errorMsg, setErrorMsg] = useState('')
   const [runId, setRunId] = useState(0)
 
+  /**
+   * Executa o ciclo de verificação da assinatura: consulta o servidor,
+   * agenda novas tentativas enquanto o pagamento não for confirmado e
+   * interrompe a rotina ao desmontar o componente.
+   */
   useEffect(() => {
     let cancelled = false
     let attempt = 0
     let timer: number | undefined
 
+    /**
+     * Consulta a sincronização das assinaturas e define a fase
+     * seguinte conforme o resultado; em falha, exibe a mensagem de erro.
+     */
     async function check() {
       attempt += 1
       setPhase('checking')
@@ -60,6 +77,10 @@ export default function PremiumReturnPage() {
     }
   }, [runId])
 
+  /**
+   * Limpa o erro anterior e reinicia o ciclo de verificação
+   * da assinatura incrementando o identificador da execução.
+   */
   function handleRetry() {
     setErrorMsg('')
     setRunId((n) => n + 1)

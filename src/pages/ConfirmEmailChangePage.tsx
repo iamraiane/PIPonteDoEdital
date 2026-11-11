@@ -5,6 +5,11 @@ import logoPonte from '../assets/logo-ponte.png'
 import { confirmEmailChange } from '../services/user'
 import './VerifyEmailPage.css'
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone ('check', 'mail', 'x' ou 'arrow').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'check':
@@ -37,6 +42,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Página de confirmação da alteração de e-mail: valida o token recebido
+ * por link e exibe os estados de carregamento, sucesso ou erro da
+ * troca de endereço de e-mail do usuário.
+ */
 export default function ConfirmEmailChangePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -50,11 +60,18 @@ export default function ConfirmEmailChangePage() {
     token ? '' : 'Token de confirmação não encontrado.',
   )
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /**
+   * Dispara a confirmação da troca de e-mail com o token obtido da URL.
+   * Sem token, o estado de erro já é mantido a partir da inicialização.
+   */
   useEffect(() => {
     if (!token) return
 

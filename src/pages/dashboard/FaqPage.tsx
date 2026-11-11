@@ -6,6 +6,7 @@ import { getTokenPayload } from '../../services/user'
 import { timeAgo } from '../../utils/timeAgo'
 import './FaqPage.css'
 
+/** Lista de perguntas e respostas fixadas exibidas no topo da página de FAQ. */
 const FAQS = [
   {
     id: '1',
@@ -24,9 +25,15 @@ const FAQS = [
   },
 ]
 
+/** Limite de caracteres aceito no assunto da nova dúvida. */
 const ASSUNTO_MAX = 60
+/** Limite de caracteres aceito na descrição da nova dúvida. */
 const DESCRICAO_MAX = 500
 
+/**
+ * Página de Perguntas Frequentes: acordeão de dúvidas fixadas, lista de dúvidas
+ * da comunidade (com edição/exclusão) e modal de criação de nova pergunta.
+ */
 export default function FaqPage() {
   const [openId, setOpenId] = useState<string | null>('1')
   const [modalOpen, setModalOpen] = useState(false)
@@ -47,10 +54,18 @@ export default function FaqPage() {
   const userId = payload?.id ?? null
   const isAdmin = payload?.role === 'admin'
 
+  /**
+   * Verifica se o usuário atual pode editar ou excluir uma dúvida.
+   * @param d - Dúvida a ser verificada.
+   * @returns true se for administrador ou autor da dúvida.
+   */
   function podeModificar(d: Doubt) {
     return isAdmin || (userId !== null && d.user_id === userId)
   }
 
+  /**
+   * Busca as dúvidas da comunidade na API ao montar a página.
+   */
   useEffect(() => {
     getDoubts()
       .then(setDoubts)
@@ -58,8 +73,12 @@ export default function FaqPage() {
       .finally(() => setLoadingDoubts(false))
   }, [])
 
+  /**
+   * Permite fechar o modal de nova pergunta com a tecla Escape.
+   */
   useEffect(() => {
     if (!modalOpen) return
+    /** Fecha o modal de nova pergunta ao pressionar Escape. */
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') closeModal()
     }
@@ -67,20 +86,27 @@ export default function FaqPage() {
     return () => document.removeEventListener('keydown', onKey)
   }, [modalOpen])
 
+  /** Recarrega a lista de dúvidas da comunidade na API. */
   function refreshDoubts() {
     getDoubts().then(setDoubts).catch(() => {})
   }
 
+  /** Abre o modal de nova pergunta e limpa mensagens de erro anteriores. */
   function openModal() {
     setModalOpen(true)
     setStatus('idle')
     setError('')
   }
 
+  /** Fecha o modal de nova pergunta. */
   function closeModal() {
     setModalOpen(false)
   }
 
+  /**
+   * Envia a nova dúvida para a API, exibe confirmação e fecha o modal após 1,1 s.
+   * @param e - Evento de submissão do formulário.
+   */
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!assunto.trim() || !descricao.trim()) return
@@ -102,10 +128,15 @@ export default function FaqPage() {
     }
   }
 
+  /** Dúvidas da comunidade ordenadas da mais recente para a mais antiga. */
   const sortedDoubts = [...doubts].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   )
 
+  /**
+   * Abre o modal de edição separando o conteúdo da dúvida em assunto e descrição.
+   * @param d - Dúvida a ser editada.
+   */
   function abrirEdicao(d: Doubt) {
     const [assunto, ...resto] = d.content.split('\n\n')
     setEditando(d)
@@ -115,11 +146,16 @@ export default function FaqPage() {
     setEditError('')
   }
 
+  /** Fecha o modal de edição e limpa o estado de erro. */
   function fecharEdicao() {
     setEditando(null)
     setEditError('')
   }
 
+  /**
+   * Salva as alterações de uma dúvida existente na API.
+   * @param e - Evento de submissão do formulário de edição.
+   */
   async function handleEditar(e: FormEvent) {
     e.preventDefault()
     if (!editando || !editAssunto.trim() || !editDescricao.trim()) return
@@ -135,6 +171,10 @@ export default function FaqPage() {
     }
   }
 
+  /**
+   * Exclui uma dúvida após confirmação do usuário, bloqueando duplo clique.
+   * @param d - Dúvida a ser excluída.
+   */
   async function handleExcluir(d: Doubt) {
     if (excluindo !== null) return
     const confirmado = window.confirm('Tem certeza que deseja excluir esta dúvida?')

@@ -6,6 +6,7 @@ import { getTokenPayload } from '../../services/user'
 import { Spinner } from '../../components/AppLoader'
 import './EditaisPage.css'
 
+/** Forma interna de um edital usada na tabela do painel admin. */
 type Edital = {
   id: string
   titulo: string
@@ -17,11 +18,18 @@ type Edital = {
   publicationDateISO: string
 }
 
+/** Temas disponíveis para classificação manual de um edital. */
 const TEMAS = [
   'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
   'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
 ]
 
+/**
+ * Converte um edital vindo da API para o formato usado na tabela.
+ * O "prazo" exibido é a data de publicação formatada em pt-BR.
+ * @param n - Edital retornado pelo serviço de notícias/editais.
+ * @returns O edital no formato da tela administrativa.
+ */
 function mapNoticeToEdital(n: NoticeApi): Edital {
   // O "prazo" exibido/editado no admin é a publication_date (mesma data
   // que o job de notificações usa como referência quando não há deadline_date).
@@ -46,12 +54,22 @@ function mapNoticeToEdital(n: NoticeApi): Edital {
   }
 }
 
+/**
+ * Página administrativa de editais: lista os editais cadastrados em
+ * tabela com busca e filtro por ausência de tema, permite editar em
+ * painel lateral, excluir com confirmação e disparar o job de
+ * notificações de prazo.
+ */
 export default function EditaisPage() {
   const [editais, setEditais] = useState<Edital[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
 
+  /**
+   * Carrega os editais do usuário logado ao montar o componente,
+   * exibindo mensagem de erro caso a requisição falhe.
+   */
   useEffect(() => {
     const payload = getTokenPayload()
     if (!payload?.id) return
@@ -67,18 +85,29 @@ export default function EditaisPage() {
   const [testandoNotif, setTestandoNotif] = useState(false)
   const [soSemTema, setSoSemTema] = useState(false)
 
+  /** Termo de busca em minúsculas usado para filtrar a tabela. */
   const termo = busca.toLowerCase()
+  /** Editais que atendem à busca de título/órgão e ao filtro de temas. */
   const filtrados = editais.filter(
     (e) =>
       (e.titulo.toLowerCase().includes(termo) || e.orgao.toLowerCase().includes(termo)) &&
       (!soSemTema || e.themes.length === 0)
   )
 
+  /**
+   * Exibe uma mensagem temporária em toast.
+   * @param msg - Texto da mensagem.
+   * @param duracaoMs - Tempo de exibição em milissegundos.
+   */
   function avisar(msg: string, duracaoMs = 2200) {
     setToast(msg)
     setTimeout(() => setToast(null), duracaoMs)
   }
 
+  /**
+   * Dispara manualmente o job de notificações e e-mails de prazo,
+   * informando o resultado ao admin via toast.
+   */
   async function testarNotificacoes() {
     setTestandoNotif(true)
     try {
@@ -92,6 +121,11 @@ export default function EditaisPage() {
     }
   }
 
+  /**
+   * Formata uma data ISO (AAAA-MM-DD) no padrão pt-BR abreviado.
+   * @param dateStr - Data em formato ISO ou vazia.
+   * @returns Data formatada ou 'Sem prazo' quando inválida.
+   */
   function formatIso(dateStr: string): string {
     if (!dateStr) return 'Sem prazo'
     const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr)
@@ -102,6 +136,11 @@ export default function EditaisPage() {
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
 
+  /**
+   * Persiste as alterações do edital no servidor, enviando os temas
+   * apenas quando foram modificados, e atualiza a linha na tabela.
+   * @param atualizado - Edital com os campos já editados.
+   */
   async function salvarEdicao(atualizado: Edital) {
     try {
       const publicationISO = atualizado.publicationDateISO.slice(0, 10)
@@ -131,6 +170,10 @@ export default function EditaisPage() {
     }
   }
 
+  /**
+   * Exclui o edital selecionado no servidor e o remove da tabela.
+   * Sem ação se não houver edital em espera de exclusão.
+   */
   async function excluir() {
     if (!excluindo) return
     try {
@@ -283,6 +326,13 @@ export default function EditaisPage() {
   )
 }
 
+/**
+ * Painel lateral para edição de um edital: campos de título, descrição,
+ * temas (chips) e prazo, com estado e UF somente leitura.
+ * @param edital - Edital a ser editado.
+ * @param onCancel - Callback para fechar o painel sem salvar.
+ * @param onSave - Callback que recebe o edital alterado ao salvar.
+ */
 function EditarEditalSidePanel({
   edital,
   onCancel,
@@ -292,6 +342,7 @@ function EditarEditalSidePanel({
   onCancel: () => void
   onSave: (e: Edital) => void
 }) {
+  /** Cópia local do edital em edição, atualizada a cada alteração de campo. */
   const [form, setForm] = useState<Edital>(edital)
 
   return (
@@ -404,6 +455,12 @@ function EditarEditalSidePanel({
   )
 }
 
+/**
+ * Modal de confirmação de exclusão de um edital.
+ * @param titulo - Título do edital a ser excluído (exibido na mensagem).
+ * @param onCancel - Callback para cancelar a exclusão.
+ * @param onConfirm - Callback para confirmar a exclusão.
+ */
 function ConfirmarExclusaoModal({
   titulo,
   onCancel,

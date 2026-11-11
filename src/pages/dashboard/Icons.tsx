@@ -1,5 +1,10 @@
 import coroaImg from '../../assets/coroa.png'
 
+/**
+ * Renderiza um ícone SVG do dashboard pelo nome.
+ * @param name - Nome do ícone (ex.: "home", "calendar", "trophy", "tech").
+ * @returns Elemento SVG correspondente ou null se o nome não existir.
+ */
 export function DashIcon({ name }: { name: string }) {
   switch (name) {
     case 'home':
@@ -270,6 +275,12 @@ export function DashIcon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Avatar circular genérico gerado a partir de uma semente de cor,
+ * usado quando o usuário não possui foto de perfil.
+ * @param size - Largura e altura do avatar em pixels.
+ * @param seed - Número que define a matiz da cor do avatar.
+ */
 export function DashAvatar({ size = 36, seed = 0 }: { size?: number; seed?: number }) {
   const hue = 165 + (seed % 4) * 12
   return (
@@ -284,6 +295,10 @@ export function DashAvatar({ size = 36, seed = 0 }: { size?: number; seed?: numb
   )
 }
 
+/**
+ * Glifo oficial do Google Agenda em quatro cores, usado nas
+ * seções de integração com o calendário.
+ */
 export function GoogleGlyph() {
   return (
     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">

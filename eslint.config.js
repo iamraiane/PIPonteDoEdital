@@ -1,3 +1,8 @@
+/**
+ * Configuração flat do ESLint: regras recomendadas de JavaScript,
+ * TypeScript, React Hooks e React Refresh para arquivos ts/tsx,
+ * ignorando o diretório de build dist.
+ */
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

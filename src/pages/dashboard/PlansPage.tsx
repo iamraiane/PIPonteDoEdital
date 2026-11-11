@@ -10,10 +10,18 @@ import {
 } from '../../services/subscription'
 import './PlansPage.css'
 
+/**
+ * Redireciona o navegador para uma URL externa (ex.: checkout da assinatura).
+ * @param url - Endereço de destino.
+ */
 function redirectTo(url: string) {
   window.location.href = url
 }
 
+/**
+ * Página de planos: cards de assinatura com checkout, indicação do plano
+ * atual do usuário e fluxo de cancelamento da assinatura Premium.
+ */
 export default function PlansPage({ hasPremium = false }: { hasPremium?: boolean }) {
   const navigate = useNavigate()
   const [subscribing, setSubscribing] = useState(false)
@@ -21,6 +29,11 @@ export default function PlansPage({ hasPremium = false }: { hasPremium?: boolean
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Trata o clique no CTA do plano: navega para o feed (plano gratuito)
+   * ou inicia o checkout da assinatura Premium.
+   * @param plan - Plano clicado.
+   */
   async function handleCta(plan: typeof PLANS[number]) {
     if (plan.action === 'navigate') {
       navigate('/dashboard/feed')
@@ -40,6 +53,10 @@ export default function PlansPage({ hasPremium = false }: { hasPremium?: boolean
     }
   }
 
+  /**
+   * Confirma o cancelamento: sincroniza as assinaturas, cancela a ativa
+   * (ou pendente) e recarrega a página de planos.
+   */
   async function handleConfirmCancel() {
     setCancelling(true)
     setError(null)

@@ -12,27 +12,48 @@ import {
 } from '../../services/googleCalendar'
 import './SavedPage.css'
 
+/** Siglas dos dias da semana usadas no selo de data da agenda. */
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+/** Nomes completos dos meses usados nos separadores da linha do tempo. */
 const MONTHS_FULL = [
   'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ]
 
+/**
+ * Gera a chave de data de hoje no formato "AAAA-MM-DD".
+ * @returns Data de hoje formatada.
+ */
 function todayKey(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/**
+ * Converte uma chave "AAAA-MM-DD" em um objeto Date local.
+ * @param key - Data no formato de chave.
+ * @returns Objeto Date correspondente.
+ */
 function parseDateKey(key: string): Date {
   const [y, m, d] = key.split('-').map(Number)
   return new Date(y, (m || 1) - 1, d || 1)
 }
 
+/**
+ * Obtém a data de prazo (ou publicação) de um favorito.
+ * @param fav - Favorito com os dados do edital.
+ * @returns Data no formato "AAAA-MM-DD" ou null quando não há data.
+ */
 function noticeDate(fav: Favorite): string | null {
   const raw = fav.notice.deadline_date ?? fav.notice.publication_date
   return raw ? raw.slice(0, 10) : null
 }
 
+/**
+ * Formata uma chave de data no padrão brasileiro curto (ex.: "12 out. 2026").
+ * @param dateKey - Data no formato "AAAA-MM-DD".
+ * @returns Data formatada.
+ */
 function formatDate(dateKey: string): string {
   return parseDateKey(dateKey).toLocaleDateString('pt-BR', {
     day: '2-digit',
@@ -41,6 +62,11 @@ function formatDate(dateKey: string): string {
   })
 }
 
+/**
+ * Selo compacto de data (dia da semana + número) exibido ao lado da linha do tempo.
+ * @param dateKey - Data no formato "AAAA-MM-DD".
+ * @param isToday - Destaca visualmente o dia atual.
+ */
 function DatePill({ dateKey, isToday }: { dateKey: string; isToday: boolean }) {
   const d = parseDateKey(dateKey)
   return (
@@ -51,6 +77,15 @@ function DatePill({ dateKey, isToday }: { dateKey: string; isToday: boolean }) {
   )
 }
 
+/**
+ * Card de um edital salvo com links de detalhes e remoção,
+ * exibindo também o status de sincronização com a Google Agenda.
+ * @param fav - Favorito a ser exibido.
+ * @param removing - Indica que a remoção está em andamento.
+ * @param userActive - Indica se a conta do usuário está ativa.
+ * @param showDate - Mostra a data do prazo dentro do card.
+ * @param onRemove - Callback disparado ao clicar em "Remover".
+ */
 function AgendaChip({
   fav,
   removing,
@@ -110,11 +145,19 @@ function AgendaChip({
   )
 }
 
+/** Grupo de favoritos que compartilham a mesma data de prazo. */
 type DateGroup = { date: string; items: Favorite[] }
+/** Item da linha do tempo: cabeçalho de mês ou grupo de data com seus editais. */
 type TimelineEntry =
   | { kind: 'date'; key: string; group: DateGroup }
   | { kind: 'month'; key: string; label: string }
 
+/**
+ * Insere na Google Agenda os editais salvos com prazo futuro que ainda não
+ * foram sincronizados, executando um por vez.
+ * @param favorites - Lista de favoritos do usuário.
+ * @param onDone - Callback com a contagem de eventos adicionados e com falha.
+ */
 function startSync(
   favorites: Favorite[],
   onDone: (added: number, failed: number) => void,
@@ -149,6 +192,10 @@ function startSync(
   })()
 }
 
+/**
+ * Página de editais salvos: agenda agrupada por data (com separadores de mês),
+ * seções de prazos encerrados/sem data e integração com a Google Agenda.
+ */
 export default function SavedPage({ userId, userActive = true }: { userId?: number; userActive?: boolean }) {
   const [items, setItems] = useState<Favorite[]>([])
   const [loading, setLoading] = useState(true)
@@ -158,6 +205,10 @@ export default function SavedPage({ userId, userActive = true }: { userId?: numb
   const [gcalMsg, setGcalMsg] = useState<string | null>(null)
   const syncStartedRef = useRef(false)
 
+  /**
+   * Carrega os favoritos do usuário e, se a Google Agenda estiver conectada,
+   * inicia a sincronização dos prazos futuros uma única vez.
+   */
   useEffect(() => {
     if (!userId) return
     getFavorites()
@@ -184,6 +235,10 @@ export default function SavedPage({ userId, userActive = true }: { userId?: numb
       .finally(() => setLoading(false))
   }, [userId, userActive])
 
+  /**
+   * Monta a linha do tempo agrupando os favoritos por data e separando os
+   * itens expirados e os que não têm prazo definido.
+   */
   const { timeline, expired, noDate } = useMemo(() => {
     const today = todayKey()
     const future: Favorite[] = []
@@ -234,6 +289,10 @@ export default function SavedPage({ userId, userActive = true }: { userId?: numb
     return { timeline: entries, expired: expiredItems, noDate: withoutDate }
   }, [items])
 
+  /**
+   * Remove um edital salvo da lista e do Google Agenda.
+   * @param id - Identificador do edital (como texto).
+   */
   function remove(id: string) {
     const noticeId = parseInt(id)
     setRemoving(id)
@@ -246,6 +305,10 @@ export default function SavedPage({ userId, userActive = true }: { userId?: numb
       .finally(() => setRemoving(null))
   }
 
+  /**
+   * Conecta a Google Agenda e, se houver editais salvos pendentes,
+   * inicia a sincronização dos prazos com a agenda do usuário.
+   */
   async function handleConnect() {
     if (userActive === false) return
     const status = await connectGoogleCalendar()

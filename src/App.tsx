@@ -15,10 +15,15 @@ import PremiumReturnPage from './pages/PremiumReturnPage'
 import { getTokenPayload, getUserById } from './services/user'
 import AppLoader from './components/AppLoader'
 
+/** Duração máxima da sessão em milissegundos (3 dias). */
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
 
 // Avalia a sessão uma vez por carregamento de página (o login usa window.location,
 // garantindo reload). Assim o render não precisa chamar Date.now (pureza do React).
+/**
+ * Verifica se há uma sessão válida (token e login recentes) no carregamento.
+ * @returns Payload do usuário quando a sessão é válida; caso contrário, null.
+ */
 function peekSession(): { id: number } | null {
   const token = localStorage.getItem('token')
   const loginTime = localStorage.getItem('loginTime')
@@ -28,8 +33,13 @@ function peekSession(): { id: number } | null {
   return payload?.id ? payload : null
 }
 
+/** Sessão avaliada uma única vez no carregamento da página. */
 const sessionAtLoad = peekSession()
 
+/**
+ * Rota protegida: redireciona para /login quando não há sessão válida.
+ * @param children - Elementos renderizados apenas com sessão ativa.
+ */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!sessionAtLoad) return <Navigate to="/login" replace />
   const token = localStorage.getItem('token')
@@ -41,6 +51,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Rota de administrador: permite acesso apenas a admins ativos,
+ * redirecionando para /dashboard nos demais casos.
+ * @param userRole - Papel do usuário autenticado.
+ * @param userActive - Indica se a conta do usuário está ativa.
+ * @param children - Elementos renderizados apenas para admins ativos.
+ */
 function AdminRoute({
   userRole,
   userActive,
@@ -54,6 +71,10 @@ function AdminRoute({
   return <>{children}</>
 }
 
+/**
+ * Componente raiz: define as rotas da aplicação e carrega os dados
+ * do usuário autenticado (nome, papel e status) para as rotas protegidas.
+ */
 function App() {
   const [userName, setUserName] = useState('')
   const [userId, setUserId] = useState<number | undefined>()
@@ -61,6 +82,10 @@ function App() {
   const [userActive, setUserActive] = useState(true)
   const [loaded, setLoaded] = useState(false)
 
+  /**
+   * Carrega os dados do usuário autenticado ao montar o componente;
+   * limpa o token quando a sessão é inválida ou a requisição falha.
+   */
   useEffect(() => {
     if (!sessionAtLoad) {
       localStorage.removeItem('token')
@@ -82,6 +107,9 @@ function App() {
       .finally(() => setLoaded(true))
   }, [])
 
+  /**
+   * Encerra a sessão do usuário e redireciona para a página comercial.
+   */
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('loginTime')

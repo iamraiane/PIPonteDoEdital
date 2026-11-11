@@ -12,6 +12,7 @@ import NotificationsPage from './NotificationsPage'
 import { FeedFilterProvider } from './FeedFilterContext'
 import { getUserById, updateUser, uploadAvatar } from '../../services/user'
 
+/** Mapeia o segmento de URL da rota atual para a chave interna da página exibida. */
 const ROUTE_MAP: Record<string, PageKey> = {
   feed: 'feed',
   calendar: 'calendar',
@@ -23,6 +24,7 @@ const ROUTE_MAP: Record<string, PageKey> = {
   notifications: 'notifications',
 }
 
+/** Mapeia cada chave de página para a rota completa usada no React Router. */
 const KEY_TO_ROUTE: Record<PageKey, string> = {
   feed: '/dashboard/feed',
   calendar: '/dashboard/calendar',
@@ -34,6 +36,12 @@ const KEY_TO_ROUTE: Record<PageKey, string> = {
   notifications: '/dashboard/notifications',
 }
 
+/**
+ * Compara dois perfis campo a campo para detectar alterações ainda não salvas.
+ * @param a - Perfil de referência (última versão salva).
+ * @param b - Perfil atual em edição.
+ * @returns true se todos os campos e a lista de interesses forem idênticos.
+ */
 function profilesEqual(a: ProfileData, b: ProfileData): boolean {
   return (
     a.nome === b.nome &&
@@ -47,6 +55,10 @@ function profilesEqual(a: ProfileData, b: ProfileData): boolean {
   )
 }
 
+/**
+ * Raiz do dashboard: gerencia as rotas internas, o estado do perfil do usuário,
+ * o fluxo de salvamento com proteção de alterações não salvas e o shell de navegação.
+ */
 export default function DashboardApp({
   userName = 'Raiane',
   userId,
@@ -79,6 +91,9 @@ export default function DashboardApp({
   const [unsavedOpen, setUnsavedOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
 
+  /**
+   * Carrega os dados do usuário pela API sempre que o identificador está disponível.
+   */
   useEffect(() => {
     if (!userId) return
     getUserById(userId)
@@ -98,6 +113,9 @@ export default function DashboardApp({
       .catch(console.error)
   }, [userId])
 
+  /**
+   * Descarta a foto pendente e revoga a URL de preview criada para ela.
+   */
   function clearPendingAvatar() {
     setPendingAvatar((prev) => {
       if (prev) URL.revokeObjectURL(prev.previewUrl)
@@ -105,6 +123,10 @@ export default function DashboardApp({
     })
   }
 
+  /**
+   * Seleciona uma nova foto de perfil, gerando preview e revogando o anterior.
+   * @param file - Arquivo de imagem escolhido pelo usuário.
+   */
   function handleAvatarSelect(file: File) {
     const previewUrl = URL.createObjectURL(file)
     setPendingAvatar((prev) => {
@@ -118,6 +140,10 @@ export default function DashboardApp({
   const page: PageKey = ROUTE_MAP[pathSegment] || 'feed'
   const isDirty = page === 'profile' && !profilesEqual(profile, savedProfile)
 
+  /**
+   * Envia os dados do perfil (e a nova foto, se houver) para a API e atualiza
+   * a referência usada para detectar alterações não salvas.
+   */
   async function handleSaveProfile() {
     if (!userId) return
     const snapshot = profile
@@ -138,6 +164,11 @@ export default function DashboardApp({
     }
   }
 
+  /**
+   * Executa uma ação apenas se não houver alterações pendentes; caso contrário,
+   * abre o modal de confirmação antes de executá-la.
+   * @param action - Ação a ser executada (navegação, logout etc.).
+   */
   function runGuarded(action: () => void) {
     if (isDirty) {
       setPendingAction(() => action)
@@ -147,20 +178,27 @@ export default function DashboardApp({
     action()
   }
 
+  /**
+   * Navega para outra página do dashboard, protegendo o perfil em edição.
+   * @param key - Chave da página de destino.
+   */
   function handleNavigate(key: PageKey) {
     if (key === page) return
     runGuarded(() => navigate(KEY_TO_ROUTE[key]))
   }
 
+  /** Dispara o logout, passando pelo modal de alterações não salvas se necessário. */
   function handleLogout() {
     if (onLogout) runGuarded(onLogout)
   }
 
+  /** Fecha o modal de alterações não salvas, mantendo o usuário na edição. */
   function handleKeepEditing() {
     setUnsavedOpen(false)
     setPendingAction(null)
   }
 
+  /** Descarta as alterações do perfil e retoma a ação que estava pendente. */
   function handleDiscardChanges() {
     clearPendingAvatar()
     setProfile(savedProfile)
@@ -170,6 +208,9 @@ export default function DashboardApp({
     action?.()
   }
 
+  /**
+   * Impede o fechamento ou recarga da aba enquanto o perfil tiver alterações não salvas.
+   */
   useEffect(() => {
     if (!isDirty) return
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -180,6 +221,9 @@ export default function DashboardApp({
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [isDirty])
 
+  /**
+   * Permite fechar o modal de alterações não salvas com a tecla Escape.
+   */
   useEffect(() => {
     if (!unsavedOpen) return
     function onKey(e: KeyboardEvent) {
@@ -192,6 +236,7 @@ export default function DashboardApp({
     return () => window.removeEventListener('keydown', onKey)
   }, [unsavedOpen])
 
+  /** Primeiro nome do usuário (ou o nome padrão) usado na saudação e no menu. */
   const firstName = profile.nome.trim().split(' ')[0] || userName
 
   return (

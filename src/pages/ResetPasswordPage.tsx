@@ -6,6 +6,11 @@ import logoPonte from '../assets/logo-ponte.png'
 import { resetPassword } from '../services/user'
 import './ResetPasswordPage.css'
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone ('check', 'lock', 'eye', 'eyeOff' ou 'arrow').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'check':
@@ -47,6 +52,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Página de redefinição de senha: valida o token recebido por e-mail,
+ * permite criar uma nova senha com no mínimo 8 caracteres e exibe os
+ * estados de sucesso, erro e carregamento da redefinição.
+ */
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -60,19 +70,33 @@ export default function ResetPasswordPage() {
   const [touched, setTouched] = useState(false)
   const [shake, setShake] = useState(false)
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /** Indica se a nova senha atinge o tamanho mínimo de 8 caracteres. */
   const senhaValid = senha.length >= 8
+  /** Indica se há um token de redefinição na URL. */
   const hasToken = !!token
 
+  /**
+   * Dispara a animação de "shake" no formulário para sinalizar
+   * que a senha digitada é inválida.
+   */
   function triggerShake() {
     setShake(true)
     window.setTimeout(() => setShake(false), 420)
   }
 
+  /**
+   * Valida a nova senha e envia a solicitação de redefinição ao servidor
+   * usando o token obtido da URL. Senha inválida apenas aciona o shake.
+   * @param e - Evento de envio do formulário.
+   */
   async function handleResetPassword(e: FormEvent) {
     e.preventDefault()
     setTouched(true)

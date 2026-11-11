@@ -1,12 +1,16 @@
 import { DashAvatar } from './Icons'
 import './AboutPage.css'
 
+/** Integrantes da equipe exibidos no cartão "Quem Somos". */
 const TEAM = [
   { nome: 'Raiane Cecílio', papel: 'Estudante do 5º ano do curso de Análise e Desenvolvimento de Sistemas' },
   { nome: 'Gustavo Nori', papel: 'Estudante do 5º ano do curso de Análise e Desenvolvimento de Sistemas' },
   
 ]
 
+/**
+ * Página "Quem Somos": apresenta a história do projeto e os integrantes da equipe.
+ */
 export default function AboutPage() {
   return (
     <div className="pdd-about-page">

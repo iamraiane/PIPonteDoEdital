@@ -9,14 +9,24 @@ import { timeAgo } from '../../utils/timeAgo'
 import type { PageKey } from './DashboardShell'
 import './NotificationsPage.css'
 
+/** Abas de filtragem das notificações: todas ou apenas as não lidas. */
 type Filter = 'all' | 'unread'
 
+/**
+ * Gera o rótulo de prazo restante exibido ao lado da notificação.
+ * @param days - Dias restantes até o prazo.
+ * @returns Texto amigável ("vence hoje", "vence amanhã", "faltam X dias").
+ */
 function daysLabel(days: number): string {
   if (days === 0) return 'vence hoje'
   if (days === 1) return 'vence amanhã'
   return `faltam ${days} dias`
 }
 
+/**
+ * Página de notificações: lista completa com abas de filtragem (todas/não
+ * lidas), marcação individual e total como lidas.
+ */
 export default function NotificationsPage({
   onNavigate,
 }: {
@@ -26,6 +36,9 @@ export default function NotificationsPage({
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
 
+  /**
+   * Recarrega a lista de notificações da API, mantendo a atual em caso de falha.
+   */
   const refresh = useCallback(async () => {
     try {
       const data = await getNotifications()
@@ -37,6 +50,9 @@ export default function NotificationsPage({
     }
   }, [])
 
+  /**
+   * Busca as notificações do usuário ao montar a página.
+   */
   useEffect(() => {
     getNotifications()
       .then(setNotifications)
@@ -44,9 +60,15 @@ export default function NotificationsPage({
       .finally(() => setLoading(false))
   }, [])
 
+  /** Quantidade de notificações não lidas. */
   const unread = notifications.filter((n) => !n.is_read).length
+  /** Notificações visíveis conforme a aba selecionada. */
   const visible = filter === 'unread' ? notifications.filter((n) => !n.is_read) : notifications
 
+  /**
+   * Marca a notificação como lida e navega para a página de salvos.
+   * @param n - Notificação clicada.
+   */
   async function handleOpen(n: AppNotification) {
     if (!n.is_read) {
       setNotifications((prev) =>
@@ -61,6 +83,9 @@ export default function NotificationsPage({
     onNavigate('saved')
   }
 
+  /**
+   * Marca todas as notificações como lidas, localmente e na API.
+   */
   async function handleMarkAllRead() {
     setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })))
     try {

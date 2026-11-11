@@ -6,6 +6,11 @@ import logoPonte from '../assets/logo-ponte.png'
 import { forgotPassword } from '../services/user'
 import './RecoverFlow.css'
 
+/**
+ * Renderiza um ícone SVG inline de acordo com o nome informado.
+ * @param name - Identificador do ícone ('check', 'mail' ou 'arrow').
+ * @returns O elemento SVG correspondente, ou null para nomes desconhecidos.
+ */
 function Icon({ name }: { name: string }) {
   switch (name) {
     case 'check':
@@ -32,6 +37,11 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+/**
+ * Fluxo de recuperação de senha: coleta o e-mail do usuário, solicita o
+ * envio do link de redefinição e apresenta os estados de sucesso, erro
+ * e carregamento do envio.
+ */
 export default function RecoverFlow() {
   const navigate = useNavigate()
   const [mounted, setMounted] = useState(false)
@@ -41,18 +51,31 @@ export default function RecoverFlow() {
   const [touched, setTouched] = useState(false)
   const [shake, setShake] = useState(false)
 
+  /**
+   * Ativa a animação de entrada da página logo após a montagem do componente.
+   */
   useEffect(() => {
     const t = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(t)
   }, [])
 
+  /** Indica se o e-mail digitado contém o formato básico de um endereço válido. */
   const emailValid = email.includes('@') && email.includes('.')
 
+  /**
+   * Dispara a animação de "shake" no formulário para sinalizar
+   * que o e-mail digitado é inválido.
+   */
   function triggerShake() {
     setShake(true)
     window.setTimeout(() => setShake(false), 420)
   }
 
+  /**
+   * Valida o e-mail e solicita o envio do link de recuperação de senha.
+   * Em caso de e-mail inválido, apenas aciona a animação de erro.
+   * @param e - Evento de envio do formulário.
+   */
   async function handleSendEmail(e: FormEvent) {
     e.preventDefault()
     setTouched(true)

@@ -1,5 +1,15 @@
 import jwt from "jsonwebtoken";
 
+/**
+ * Middleware de autenticação por token JWT.
+ * Extrai o token do cabeçalho "Authorization: Bearer <token>", valida a
+ * assinatura com JWT_SECRET e injeta o payload decodificado em req.user.
+ * Responde 401 se o cabeçalho não existir ou se o token for inválido.
+ * @param {import("express").Request} req - Requisição contendo o cabeçalho Authorization.
+ * @param {import("express").Response} res - Resposta usada para retornar erros 401.
+ * @param {import("express").NextFunction} next - Próximo middleware em caso de token válido.
+ * @returns {void}
+ */
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 

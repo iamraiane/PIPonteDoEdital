@@ -1,3 +1,11 @@
+/**
+ * Define o schema TypeORM da tabela "notices" (entidade Notice) — editais/publicações.
+ * Colunas: id (int, PK auto), title (varchar), state (varchar), state_code (varchar),
+ * description (text), themes (simple-array), link (varchar único), publication_date (date),
+ * deadline_date (date), created_at (timestamp automático).
+ * Relações: email_logs (one-to-many com EmailLog), favorites (one-to-many com Favorite),
+ * notifications (one-to-many com Notification).
+ */
 import { EntitySchema } from "typeorm";
 
 export const NoticeEntity = new EntitySchema({

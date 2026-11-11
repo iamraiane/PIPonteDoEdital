@@ -1,8 +1,20 @@
 import { AppDataSource } from "../../data-source.js";
 import { FavoriteEntity } from "../entities/Favorite.js";
 
+/**
+ * Controller de favoritos: permite ao usuário autenticado favoritar,
+ * desfavoritar e listar editais (notices) salvos.
+ * Rotas protegidas: perfis "premium" e "admin" (via checkRole).
+ */
 export class FavoriteController {
 
+    /**
+     * Adiciona um edital aos favoritos do usuário autenticado.
+     * Recusa (400) se o edital já estiver favoritado pelo mesmo usuário.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (201 com o favorito, 400 se já favoritado ou 500 em erro interno).
+     */
     async addFavorite(req, res) {
         try {
             const favoriteRepo = AppDataSource.getRepository(FavoriteEntity);
@@ -32,6 +44,12 @@ export class FavoriteController {
         }
     }
 
+    /**
+     * Remove o favorito do usuário autenticado para o edital informado em :notice_id.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com confirmação, 404 se não favoritado ou 500 em erro interno).
+     */
     async removeFavorite(req, res) {
         try {
             const favoriteRepo = AppDataSource.getRepository(FavoriteEntity);
@@ -56,6 +74,12 @@ export class FavoriteController {
         }
     }
 
+    /**
+     * Lista todos os favoritos do usuário autenticado, com os editais relacionados.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o array de favoritos ou 500 em erro interno).
+     */
     async getUserFavorites(req, res) {
         try {
             const favoriteRepo = AppDataSource.getRepository(FavoriteEntity);

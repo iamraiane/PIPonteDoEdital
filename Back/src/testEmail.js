@@ -1,3 +1,9 @@
+/**
+ * Script de teste de envio de e-mail (executar com `node src/testEmail.js`).
+ * Monta um edital fictício e envia um lembrete de prazo para um endereço
+ * de teste via sendNoticeReminder; encerra o processo com código 0 em caso
+ * de sucesso e 1 em caso de falha.
+ */
 import "dotenv/config";
 import { sendNoticeReminder } from "./utils/emailUtils.js";
 

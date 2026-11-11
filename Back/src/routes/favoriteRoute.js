@@ -1,3 +1,10 @@
+/**
+ * Declara os endpoints do módulo de favoritos (/favorites): adicionar,
+ * remover e listar os editais favoritados pelo usuário.
+ * Autenticação: todas as rotas exigem authMiddleware + checkRole("premium", "admin")
+ * — favoritar é exclusivo de usuários premium/administradores.
+ * Mount point: raiz da aplicação.
+ */
 import { FavoriteController } from "../controllers/favoriteController.js";
 import express from "express";
 import { authMiddleware } from "../utils/auth.js";

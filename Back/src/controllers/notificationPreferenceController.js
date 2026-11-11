@@ -2,7 +2,18 @@ import { AppDataSource } from "../../data-source.js";
 import { UserEntity } from "../entities/User.js"; // copie o import que o userController já usa
 import { NOTIFICATION_OPTIONS } from "../utils/notificationOptions.js";
 
+/**
+ * Controller de preferências de notificação do usuário:
+ * consulta e atualização dos dias/opções de notificação escolhidos.
+ */
 class NotificationController {
+    /**
+     * Retorna as opções de notificação disponíveis e os dias selecionados
+     * pelo usuário. Sem preferência salva, considera todas as opções selecionadas.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com options/selected, 404 se o usuário não existir ou 500 em erro interno).
+     */
     async getPreferences(req, res) {
         try {
             const user = await AppDataSource.getRepository(UserEntity).findOne({
@@ -25,6 +36,14 @@ class NotificationController {
         }
     }
 
+    /**
+     * Atualiza as preferências de notificação do usuário autenticado.
+     * Valida que days é um array, remove duplicados e recusa valores
+     * fora das opções permitidas (NOTIFICATION_OPTIONS).
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com as opções salvas, 400 se a lista for inválida ou 500 em erro interno).
+     */
     async updatePreferences(req, res) {
         try {
             const { days } = req.body;

@@ -1,3 +1,9 @@
+/**
+ * Seed de criação do usuário premium (role "premium").
+ * Inicializa a conexão com o banco e cria o usuário com base nas variáveis PREMIUM_* do .env,
+ * caso ele ainda não exista. Senha criptografada com bcrypt (10 salt rounds) e e-mail já verificado.
+ * Ao final, encerra a conexão com o banco.
+ */
 import "dotenv/config";
 import { AppDataSource } from "../../data-source.js";
 import { UserEntity } from "../entities/User.js";

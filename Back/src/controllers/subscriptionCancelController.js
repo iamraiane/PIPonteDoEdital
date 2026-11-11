@@ -1,6 +1,18 @@
 import { cancelUserSubscription } from "../services/subscriptionSyncService.js";
 
+/**
+ * Controller responsável pelo cancelamento de assinaturas do usuário.
+ */
 export class SubscriptionCancelController {
+  /**
+   * Cancela uma assinatura pertencente ao usuário autenticado.
+   * Valida autenticação e ID da assinatura, delega o cancelamento
+   * ao serviço e traduz erros de código em status HTTP apropriados
+   * (NOT_FOUND → 404, NO_MP_ID → 400, demais → 500).
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async handle(req, res) {
     const userId = req.user?.id;
 

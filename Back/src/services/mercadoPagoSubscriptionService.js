@@ -1,7 +1,13 @@
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 
+/** Instância singleton do cliente PreApproval do Mercado Pago (criada sob demanda). */
 let preApproval;
 
+/**
+ * Obtém (ou cria uma única vez) a instância de PreApproval do Mercado Pago.
+ * @returns {PreApproval} Cliente de assinaturas recorrentes do Mercado Pago.
+ * @throws {Error} Se a variável de ambiente MP_ACCESS_TOKEN não estiver configurada.
+ */
 function getPreApproval() {
   if (!preApproval) {
     const accessToken = process.env.MP_ACCESS_TOKEN;
@@ -16,6 +22,16 @@ function getPreApproval() {
   return preApproval;
 }
 
+/**
+ * Cria uma assinatura mensal recorrente no Mercado Pago.
+ * Valida o plano e os dados obrigatórios e retorna o checkout para pagamento.
+ * @param {{ plan: { name: string, value: number }, payerEmail: string, externalReference: string }} params - Dados da assinatura.
+ * @param {object} params.plan - Plano a ser assinado (nome e valor).
+ * @param {string} params.payerEmail - E-mail do pagador.
+ * @param {string} params.externalReference - Referência externa para conciliação (ex.: id do usuário).
+ * @returns {Promise<{id: string, checkoutUrl: string, status: string}>} Identificador, URL do checkout e status inicial da assinatura.
+ * @throws {Error} Se o plano, o e-mail do pagador ou a referência externa forem inválidos.
+ */
 export async function createMonthlySubscription({
   plan,
   payerEmail,

@@ -1,3 +1,11 @@
+/**
+ * Declara os endpoints do módulo de notificações (prefixed em "/notifications"):
+ * preferências de notificação do usuário (GET/PUT /preferences) e notificações
+ * in-app (listagem, marcar como lida, marcar todas como lidas e execução
+ * manual do job restrita a admin).
+ * Autenticação: todas as rotas usam authMiddleware; a rota /run exige
+ * adicionalmente checkRole("admin").
+ */
 import { Router } from "express";
 import NotificationController from "../controllers/notificationPreferenceController.js";
 import InAppNotificationController from "../controllers/notificationController.js";

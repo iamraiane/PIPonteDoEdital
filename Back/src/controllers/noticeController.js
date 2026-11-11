@@ -3,8 +3,14 @@ import { NoticeEntity } from "../entities/Notice.js";
 import { UserEntity } from "../entities/User.js";
 import { classifyNotice, matchScore } from "../services/themeClassifier.js";
 
-// Preenche os temas de editais novos ou reimportados (themes = NULL).
-// Nunca sobrescreve temas já definidos (automáticos ou manuais do admin).
+/**
+ * Garante que editais novos ou reimportados tenham seus temas classificados.
+ * Preenche apenas os editais com themes NULL/undefined e nunca sobrescreve
+ * temas já definidos (automáticos ou manuais do admin).
+ * @param {import("typeorm").Repository<NoticeEntity>} noticeRepo - Repositório de editais usado para salvar.
+ * @param {NoticeEntity[]} notices - Editais a verificar; somente os sem temas são alterados.
+ * @returns {Promise<void>} Persiste os temas preenchidos no banco (sem retorno em caso de nada pendente).
+ */
 async function ensureThemes(noticeRepo, notices) {
     const pending = notices.filter((notice) => notice.themes === null || notice.themes === undefined);
     if (pending.length === 0) return;
@@ -14,7 +20,19 @@ async function ensureThemes(noticeRepo, notices) {
     await noticeRepo.save(pending);
 }
 
+/**
+ * Controller de editais (notices): listagem com recomendação por afinidade
+ * às preferências do usuário, consulta por id/área e atualização/remoção (admin).
+ */
 export class NoticeController {
+    /**
+     * Lista os editais ordenados por afinidade com as preferências do usuário
+     * (recomendados primeiro), classificando temas pendentes antes de responder.
+     * Usuários com perfil "user" recebem no máximo 5 editais.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o array de editais, 404 se o usuário não existir ou 500 em erro interno).
+     */
     async getAllNotices(req, res) {
         try {
             const noticeRepo = AppDataSource.getRepository(NoticeEntity);
@@ -54,6 +72,12 @@ export class NoticeController {
         }
     }
 
+    /**
+     * Busca um edital pelo id, classificando os temas caso ainda não existam.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o edital, 404 se não encontrado ou 500 em erro interno).
+     */
     async getNoticeById(req, res) {
         try {
             const noticeRepo = AppDataSource.getRepository(NoticeEntity);
@@ -73,6 +97,12 @@ export class NoticeController {
         }
     }
 
+    /**
+     * Lista os editais vinculados a uma área (área de conhecimento) específica.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o array, 404 se a área não tiver editais ou 500 em erro interno).
+     */
     async getNoticesByArea(req, res) {
         try {
             const noticeRepo = AppDataSource.getRepository(NoticeEntity);
@@ -89,6 +119,15 @@ export class NoticeController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+    /**
+     * Atualiza os campos de um edital.
+     * Temas enviados como array têm prioridade (definição manual do admin);
+     * caso contrário, os temas são re-classificados automaticamente quando
+     * título ou descrição mudam. Rota protegida: apenas o perfil admin.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o edital, 404 se não encontrado ou 500 em erro interno).
+     */
     async updateNotice(req, res) {
         try {
             const noticeRepo = AppDataSource.getRepository(NoticeEntity);
@@ -127,6 +166,13 @@ export class NoticeController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+    /**
+     * Exclui um edital pelo id.
+     * Rota protegida: apenas o perfil admin (via checkRole).
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com confirmação, 404 se não encontrado ou 500 em erro interno).
+     */
     async deleteNotice(req, res) {
         try {
             const noticeRepo = AppDataSource.getRepository(NoticeEntity);

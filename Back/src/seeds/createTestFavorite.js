@@ -1,3 +1,9 @@
+/**
+ * Seed de favorito de teste para validar as notificações de prazo.
+ * Exige o usuário admin (createAdmin.js) e ao menos uma notice no banco.
+ * Define o deadline_date de uma notice para 7 dias a partir de hoje (data-alvo de notificação)
+ * e cria um favorito do admin para ela, caso ainda não exista. Encerra a conexão ao final.
+ */
 import "dotenv/config";
 import { AppDataSource } from "../../data-source.js";
 import { UserEntity } from "../entities/User.js";

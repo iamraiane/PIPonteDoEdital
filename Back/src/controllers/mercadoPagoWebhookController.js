@@ -8,15 +8,34 @@ import { AppDataSource } from "../../data-source.js";
 import { SubscriptionEntity } from "../entities/Subscription.js";
 import { UserEntity } from "../entities/User.js";
 
+/** Access token do Mercado Pago usado nas chamadas à API. */
 const accessToken = process.env.MP_ACCESS_TOKEN;
+/** Segredo usado para validar a assinatura criptográfica dos webhooks. */
 const webhookSecret = process.env.MP_WEBHOOK_SECRET;
 
 console.log("Segredo carregado no controller:", Boolean(webhookSecret));
 
+/** Cliente de configuração do Mercado Pago. */
 const client = new MercadoPagoConfig({ accessToken });
+/** Cliente do recurso de assinaturas recorrentes (PreApproval). */
 const preApproval = new PreApproval(client);
 
+/**
+ * Controller de webhooks do Mercado Pago.
+ * Recebe, valida e processa notificações de assinaturas recorrentes.
+ */
 export class MercadoPagoWebhookController {
+  /**
+   * Processa uma notificação (webhook) vinda do Mercado Pago.
+   * Valida a assinatura criptográfica (x-signature/x-request-id), filtra
+   * apenas eventos do tipo "subscription_preapproval", consulta o estado
+   * verdadeiro na API do Mercado Pago, atualiza o registro local e o papel
+   * premium do usuário conforme haja assinatura ativa. Responde 200 para
+   * notificações não relevantes ou assinaturas inexistentes (evita reenvio).
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async handle(req, res) {
     if (!webhookSecret) {
       console.error("MP_WEBHOOK_SECRET não configurado.");

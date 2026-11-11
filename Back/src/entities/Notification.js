@@ -1,3 +1,13 @@
+/**
+ * Define o schema TypeORM da tabela "notifications" (entidade Notification) —
+ * notificações in-app de prazo de editais favoritados.
+ * Colunas: id (int, PK auto), user_id (int), notice_id (int), title (varchar),
+ * message (varchar), days_left (int), is_read (boolean, padrão false),
+ * created_at (timestamp automático).
+ * Relações: user (many-to-one com User, delete em cascata),
+ * notice (many-to-one com Notice, delete em cascata).
+ * Índice único em (user_id, notice_id, days_left) para evitar duplicatas.
+ */
 import { EntitySchema } from "typeorm";
 
 export const NotificationEntity = new EntitySchema({

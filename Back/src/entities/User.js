@@ -1,3 +1,16 @@
+/**
+ * Define o schema TypeORM da tabela "users" (entidade User) — contas de usuário.
+ * Colunas: id (int, PK auto), name (varchar), email (varchar único),
+ * cpf (varchar único), data_nascimento (date), password_hash (varchar),
+ * state_code (varchar), preferences (simple-array), pending_email (varchar),
+ * notification_days (simple-array), active (boolean, padrão true),
+ * role (enum: user/admin/premium, padrão "user"), email_verified (boolean),
+ * created_at (timestamp automático), avatar_blob (varchar 255),
+ * avatar_url (varchar 500).
+ * Relações: subscriptions (one-to-many com Subscription),
+ * email_logs (one-to-many com EmailLog), favorites (one-to-many com Favorite),
+ * notifications (one-to-many com Notification).
+ */
 import { EntitySchema } from "typeorm";
 
 export const UserEntity = new EntitySchema({

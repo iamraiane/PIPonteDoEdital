@@ -1,3 +1,11 @@
+/**
+ * Define o schema TypeORM da tabela "user_tokens" (entidade UserToken) —
+ * tokens de uso único para recuperação de senha, verificação e troca de e-mail.
+ * Colunas: id (int, PK auto), token (varchar único),
+ * type (enum: PASSWORD_RESET/EMAIL_VERIFICATION/EMAIL_CHANGE), user_id (int),
+ * used (boolean, padrão false), expires_at (timestamp), created_at (timestamp automático).
+ * Relações: user (many-to-one com User via user_id, delete em cascata).
+ */
 import { EntitySchema } from "typeorm";
 
 export const UserTokenEntity = new EntitySchema({

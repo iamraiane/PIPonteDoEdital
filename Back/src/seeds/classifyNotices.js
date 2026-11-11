@@ -1,3 +1,9 @@
+/**
+ * Seed de classificação de editais.
+ * Inicializa a conexão com o banco, percorre todos os editais sem temas e
+ * preenche o campo "themes" usando o classificador automático (themeClassifier).
+ * Ao final, imprime o resumo de editais classificados e encerra a conexão.
+ */
 import "dotenv/config";
 import { AppDataSource } from "../../data-source.js";
 import { NoticeEntity } from "../entities/Notice.js";

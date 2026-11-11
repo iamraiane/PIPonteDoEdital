@@ -1,3 +1,8 @@
+/**
+ * Define o schema TypeORM da tabela "areas" (entidade Area).
+ * Colunas: id (int, PK auto), name (varchar).
+ * Relações: notices (one-to-many com Notice, lado inverso "area").
+ */
 import { EntitySchema } from "typeorm";
 
 export const AreaEntity = new EntitySchema({

@@ -1,3 +1,10 @@
+/**
+ * Define o schema TypeORM da tabela "doubts" (entidade Doubt).
+ * Colunas: id (int, PK auto), content (text), status (varchar, padrão "open"),
+ * created_at (timestamp automático), user_id (int).
+ * Relações: user (many-to-one com User via user_id),
+ * answers (one-to-many com DoubtAnswer, lado inverso "doubt", delete em cascata).
+ */
 import { EntitySchema } from "typeorm";
 
 export const DoubtEntity = new EntitySchema({

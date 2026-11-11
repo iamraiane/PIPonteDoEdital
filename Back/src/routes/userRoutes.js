@@ -1,3 +1,11 @@
+/**
+ * Declara os endpoints do módulo de usuários: cadastro, login, CRUD de
+ * contas, gestão de perfis (admin/premium), assinaturas do usuário,
+ * recuperação/verificação/troca de e-mail e upload/remoção de avatar.
+ * Autenticação: rotas públicas (login, cadastro, auth por token) sem
+ * middleware; as demais usam authMiddleware + checkRole (admin ou
+ * admin/user/premium conforme a rota). Mount point: raiz da aplicação.
+ */
 import { AuthController, AvatarController } from "../controllers/userController.js";
 import express from "express";
 import { authMiddleware} from "../utils/auth.js";

@@ -1,3 +1,4 @@
+/** Lista de temas (categorias multi-label) usados para classificar editais. */
 export const THEMES = [
     "Tecnologia",
     "Educação",
@@ -9,6 +10,7 @@ export const THEMES = [
     "Engenharia",
 ];
 
+/** Mapa de tema -> lista de palavras-chave (sem acento, em minúsculas) usadas na classificação. */
 const KEYWORDS = {
     "Tecnologia": [
         "tecnologia", "tecnologico", "informatica", "software", "hardware",
@@ -96,6 +98,11 @@ const KEYWORDS = {
     ],
 };
 
+/**
+ * Remove acentos e converte o texto para minúsculas para comparação uniforme.
+ * @param {string|null|undefined} value - Texto de entrada (título ou descrição).
+ * @returns {string} Texto normalizado sem acentos e em minúsculas ("" se vazio).
+ */
 export function normalizeText(value) {
     if (!value) return "";
     return value
@@ -104,10 +111,16 @@ export function normalizeText(value) {
         .toLowerCase();
 }
 
+/**
+ * Escapa caracteres especiais de expressão regular em um valor literal.
+ * @param {string} value - Palavra-chave literal.
+ * @returns {string} Valor escapado para uso seguro em RegExp.
+ */
 function escapeRegex(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/** Cache de expressões regulares pré-compiladas por tema (keyword + regex). */
 // Pré-compila: tema -> [{ keyword, regex }] com fronteira de palavra inteira.
 const COMPILED = {};
 for (const theme of THEMES) {
@@ -117,6 +130,12 @@ for (const theme of THEMES) {
     }));
 }
 
+/**
+ * Conta quantas palavras-chave de um tema aparecem no texto.
+ * @param {string} text - Texto normalizado (sem acentos, minúsculo).
+ * @param {Array<{keyword: string, regex: RegExp}>} entries - Entradas pré-compiladas do tema.
+ * @returns {number} Quantidade de palavras-chave distintas encontradas.
+ */
 function countHits(text, entries) {
     let hits = 0;
     for (const { regex } of entries) {
@@ -127,6 +146,12 @@ function countHits(text, entries) {
 
 // Retorna os temas do edital (multi-label), ordenados por relevância.
 // Acerto no título vale o dobro do acerto na descrição.
+/**
+ * Classifica um edital em um ou mais temas a partir do título e da descrição.
+ * @param {string} title - Título do edital.
+ * @param {string} description - Descrição do edital.
+ * @returns {string[]} Temas encontrados ordenados do mais ao menos relevante (pode ser vazio).
+ */
 export function classifyNotice(title, description) {
     const normalizedTitle = normalizeText(title);
     const normalizedDescription = normalizeText(description);
@@ -148,6 +173,12 @@ export function classifyNotice(title, description) {
 }
 
 // Número de temas do edital que batem com as preferências do usuário.
+/**
+ * Calcula a pontuação de compatibilidade entre os temas do edital e as preferências do usuário.
+ * @param {string[]} noticeThemes - Temas classificados do edital.
+ * @param {string[]} userPreferences - Temas preferidos pelo usuário.
+ * @returns {number} Quantidade de temas em comum (0 se algum dos campos for inválido ou vazio).
+ */
 export function matchScore(noticeThemes, userPreferences) {
     if (!Array.isArray(noticeThemes) || noticeThemes.length === 0) return 0;
     if (!Array.isArray(userPreferences) || userPreferences.length === 0) return 0;

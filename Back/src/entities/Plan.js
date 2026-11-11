@@ -1,4 +1,10 @@
 
+/**
+ * Define o schema TypeORM da tabela "plan" (entidade Plan) — planos de assinatura.
+ * Colunas: id (int, PK auto), name (varchar), description (varchar),
+ * value (decimal 10,2), activate (boolean, padrão true), created_at (timestamp automático).
+ * Relações: subscriptions (one-to-many com Subscription, lado inverso "plan").
+ */
 import { EntitySchema } from "typeorm";
 
 export const PlanEntity = new EntitySchema({

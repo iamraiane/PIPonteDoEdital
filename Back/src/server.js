@@ -1,3 +1,8 @@
+/**
+ * Ponto de entrada da API: inicializa a conexão TypeORM com o banco,
+ * inicia o job de notificações de favoritos e sobe o servidor HTTP
+ * na porta definida em process.env.PORT (padrão 3000).
+ */
 import { AppDataSource } from "../data-source.js"; 
 import app from "./app.js"; 
 import { startFavoriteNotificationJob } from "./jobs/notifyFavorites.js";

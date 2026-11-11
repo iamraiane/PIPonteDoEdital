@@ -1,3 +1,10 @@
+/**
+ * Declara os endpoints do módulo de assinaturas (montado em "/api/subscriptions"):
+ * webhook do Mercado Pago, sincronização de status, cancelamento e criação
+ * de assinatura para um plano.
+ * Autenticação: a rota /webhook é pública (assinada pelo Mercado Pago);
+ * /sync, /:id/cancel e /:planId exigem authMiddleware.
+ */
 import express from "express";
 import { SubscriptionController } from "../controllers/subscriptionController.js";
 import { SubscriptionSyncController } from "../controllers/subscriptionSyncController.js";

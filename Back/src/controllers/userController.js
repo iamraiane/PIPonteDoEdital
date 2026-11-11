@@ -24,13 +24,32 @@ import {
 } from "../utils/emailUtils.js";
 import bcrypt from "bcrypt";
 
+/**
+ * Controller principal de autenticação e gestão de usuários.
+ * Concentra login, cadastro, CRUD, papéis (role), assinatura premium,
+ * recuperação de senha e fluxos de verificação/troca de e-mail.
+ */
 export class AuthController {
+  /**
+   * Lista todos os usuários cadastrados.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async getAllUsers(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
     const users = await repo.find();
     return res.json(users);
   }
 
+  /**
+   * Autentica o usuário por nome ou e-mail.
+   * Valida credenciais, exige e-mail verificado (caso contrário responde
+   * 403 com código EMAIL_NOT_VERIFIED) e retorna um token JWT.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async login(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -76,6 +95,15 @@ export class AuthController {
     }
   }
 
+  /**
+   * Cria um novo usuário (cadastro).
+   * Valida campos obrigatórios, nome, unicidade de e-mail e CPF, CPF válido
+   * e data de nascimento no passado; persiste a senha com hash, envia e-mail
+   * de verificação (falha no envio não impede o cadastro) e retorna token JWT.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async createUser(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -154,6 +182,12 @@ export class AuthController {
     }
   }
 
+  /**
+   * Busca um usuário pelo ID.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async getOneUser(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
 
@@ -170,6 +204,14 @@ export class AuthController {
     return res.json(user);
   }
 
+  /**
+   * Atualiza dados básicos do usuário (name, state_code, preferences).
+   * Só o próprio usuário autenticado pode atualizar seu registro;
+   * responde 403 se o ID autenticado difere do ID da rota.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async updateUser(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -204,6 +246,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Remove um usuário pelo ID.
+   * Após remover, apaga de forma assíncrona o blob do avatar antigo
+   * (falha na limpeza não afeta a resposta).
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async deleteUser(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
 
@@ -226,6 +276,13 @@ export class AuthController {
     return res.status(200).json({ message: "Usuário removido com sucesso" });
   }
 
+  /**
+   * Reativa um usuário desativado (active = true).
+   * Responde 400 se o usuário já estiver ativo.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async activateUser(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
 
@@ -246,6 +303,13 @@ export class AuthController {
     return res.status(200).json({ message: "Usuário ativado com sucesso" });
   }
 
+  /**
+   * Desativa um usuário (active = false).
+   * Responde 400 se o usuário já estiver desativado.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async disableUser(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
 
@@ -266,6 +330,12 @@ export class AuthController {
     return res.status(200).json({ message: "Usuário desativado com sucesso" });
   }
 
+  /**
+   * Busca um usuário pelo e-mail.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async getUserByEmail(req, res) {
     const repo = AppDataSource.getRepository(UserEntity);
 
@@ -282,6 +352,12 @@ export class AuthController {
     return res.json(user);
   }
 
+  /**
+   * Promove o usuário para o papel de administrador (role = "admin").
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async promoteToAdmin(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -304,6 +380,12 @@ export class AuthController {
       return res.status(500).json({ message: "Internal server error" });
     }
   }
+  /**
+   * Rebaixa o usuário para o papel comum (role = "user").
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async demoteToUser(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -327,6 +409,12 @@ export class AuthController {
     }
   }
 
+  /**
+   * Promove o usuário para o papel premium (role = "premium").
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async promoteToPremium(req, res) {
     try {
       const repo = AppDataSource.getRepository(UserEntity);
@@ -350,6 +438,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Consulta o estado premium do usuário.
+   * Retorna hasPremium false e plano "free" quando não há assinatura
+   * ativa ou quando a data de término já passou.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async getUserSubscription(req, res) {
     try {
       const repo = AppDataSource.getRepository(SubscriptionEntity);
@@ -380,6 +476,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Ativa manualmente o premium do usuário.
+   * Cria uma assinatura "premium" ativa com validade de 30 dias a partir
+   * da data atual.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async activatePremium(req, res) {
     try {
       const repo = AppDataSource.getRepository(SubscriptionEntity);
@@ -406,6 +510,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Desativa manualmente o premium do usuário.
+   * Marca a assinatura ativa como "inactive"; responde 404 se não houver
+   * assinatura ativa.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async deactivatePremium(req, res) {
     try {
       const repo = AppDataSource.getRepository(SubscriptionEntity);
@@ -433,6 +545,15 @@ export class AuthController {
     }
   }
 
+  /**
+   * Solicita a redefinição de senha por e-mail.
+   * Invalida tokens de reset anteriores não utilizados, gera um novo token
+   * com validade de 2 horas e envia o link por e-mail. Sempre responde 200
+   * com mensagem genérica para não revelar se o e-mail existe.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async forgotPassword(req, res) {
     try {
       const { email } = req.body;
@@ -483,6 +604,14 @@ export class AuthController {
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
+  /**
+   * Redefine a senha do usuário usando o token de recuperação.
+   * Valida presença, uso e expiração do token, grava a nova senha com hash
+   * e marca o token como utilizado.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async resetPassword(req, res) {
     try {
       const { token, password } = req.body;
@@ -530,6 +659,14 @@ export class AuthController {
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
+  /**
+   * Confirma a verificação de e-mail do cadastro.
+   * Valida o token EMAIL_VERIFICATION (não usado e não expirado), marca o
+   * usuário como e-mail verificado e consome o token.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async verifyEmail(req, res) {
     try {
       const { token } = req.body;
@@ -571,6 +708,15 @@ export class AuthController {
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
+  /**
+   * Inicia a troca de e-mail do usuário autenticado.
+   * Exige e-mail e senha (confere a senha atual), valida formato, evita
+   * e-mail igual ao atual ou já em uso, grava o pending_email e envia um
+   * link de confirmação para o novo e-mail e um aviso para o antigo.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async toChangeYourEmail(req, res) {
     try {
       const id = req.user.id;
@@ -629,6 +775,15 @@ export class AuthController {
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
+  /**
+   * Confirma a troca de e-mail pendente usando o token recebido.
+   * Valida o token EMAIL_CHANGE (não usado e não expirado) e a existência
+   * do pending_email; em transação, promove o novo e-mail (já verificado),
+   * limpa o pendente e consome o token. Trata violação de unicidade (409).
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async confirmEmailChange(req, res) {
     try {
       const { token } = req.body;
@@ -699,6 +854,14 @@ export class AuthController {
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
+  /**
+   * Reenvia o e-mail de verificação de cadastro.
+   * Responde sempre com mensagem genérica; aplica limite de 1 minuto entre
+   * envios (429) e ignora contas já verificadas ou inexistentes.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async resendVerificationEmail(req, res) {
     try {
       const { email } = req.body;
@@ -750,7 +913,20 @@ export class AuthController {
   }
 }
 
+/**
+ * Controller de avatares dos usuários.
+ */
 export class AvatarController {
+    /**
+   * Atualiza o avatar do usuário autenticado.
+   * Só o próprio usuário pode alterar seu avatar; valida que há arquivo e
+   * que é uma imagem real (inspeciona os bytes), envia a nova imagem ao
+   * armazenamento, persiste a referência (removendo a nova em caso de falha
+   * no banco) e apaga o blob antigo de forma assíncrona.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
     async updateAvatar(req, res) {
     try {
       const { id } = req.params;
@@ -811,6 +987,14 @@ export class AvatarController {
     }
   }
 
+  /**
+   * Remove o avatar do usuário autenticado.
+   * Só o próprio usuário pode remover seu avatar; zera avatar_blob e
+   * avatar_url e apaga o blob antigo de forma assíncrona.
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async removeAvatar(req, res) {
     try {
       const { id } = req.params;

@@ -1,3 +1,10 @@
+/**
+ * Define o schema TypeORM da tabela "email_logs" (entidade EmailLog).
+ * Colunas: id (int, PK auto), sent_at (timestamp automático), user_id (int),
+ * notice_id (int).
+ * Relações: user (many-to-one com User via user_id, delete em cascata),
+ * notice (many-to-one com Notice via notice_id).
+ */
 import { EntitySchema } from "typeorm";
 
 export const EmailLogEntity = new EntitySchema({

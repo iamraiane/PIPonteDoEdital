@@ -1,10 +1,23 @@
 import { AppDataSource } from "../../data-source.js";
 import { DoubtAnswerEntity } from "../entities/DoubtAnswer.js";
 
+/** Limite máximo de caracteres aceitos no conteúdo de uma resposta à dúvida. */
 const ANSWER_CONTENT_MAX = 1000;
 
+/**
+ * Controller de respostas a dúvidas: criação, listagem, consulta,
+ * atualização e remoção, com validação de tamanho do conteúdo.
+ */
 export class DoubtAnswerController {
 
+    /**
+     * Cria uma resposta para a dúvida indicada em :doubt_id, registrando o autor
+     * como o usuário autenticado. Valida o limite de 1000 caracteres.
+     * Rota protegida: apenas o perfil admin (via checkRole).
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (201 com a resposta, 400 se exceder o limite ou 500 em erro interno).
+     */
     async createDoubtAnswer(req, res) {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
 
@@ -32,6 +45,12 @@ export class DoubtAnswerController {
         }
     }
 
+    /**
+     * Busca uma resposta à dúvida pelo id, carregando a dúvida e o autor.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com a resposta, 404 se não encontrada ou 500 em erro interno).
+     */
     async getDoubtAnswerById(req, res) {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
 
@@ -53,6 +72,12 @@ export class DoubtAnswerController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+    /**
+     * Lista todas as respostas a dúvidas, carregando a dúvida e o autor de cada uma.
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o array de respostas ou 500 em erro interno).
+     */
     async getAllDoubtAnswers(req, res) {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
 
@@ -64,6 +89,13 @@ export class DoubtAnswerController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+    /**
+     * Exclui uma resposta à dúvida pelo id.
+     * Rota protegida: apenas o perfil admin (via checkRole).
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com confirmação, 404 se não encontrada ou 500 em erro interno).
+     */
     async deleteDoubtAnswer(req, res) {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
 
@@ -84,6 +116,13 @@ export class DoubtAnswerController {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+    /**
+     * Atualiza o conteúdo de uma resposta à dúvida, respeitando o limite de 1000 caracteres.
+     * Rota protegida: apenas o perfil admin (via checkRole).
+     * @param {import("express").Request} req
+     * @param {import("express").Response} res
+     * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com a resposta, 400 se exceder o limite, 404 se não encontrada ou 500 em erro interno).
+     */
     async updateDoubtAnswer(req, res) {
         const repo = AppDataSource.getRepository(DoubtAnswerEntity);
         const { id } = req.params;

@@ -3,9 +3,22 @@ import { AppDataSource } from "../../data-source.js";
 import { UserTokenEntity } from "../entities/UserToken.js";
 import { generateRandomToken } from "./tokenUtils.js";
 
+/** Cliente da API Resend autenticado com a chave RESEND_API_KEY. */
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/** Remetente padrão dos e-mails da plataforma (RESEND_FROM_EMAIL ou o endereço fallback). */
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Ponte do Edital <naoresponda@pontedoedital.com.br>";
+
+/**
+ * Envia um e-mail de lembrete de prazo de edital favoritado.
+ * Usa deadline_date (ou publication_date na ausência dele) para montar a
+ * data do prazo e ajusta o assunto conforme os dias restantes (hoje, amanhã ou "Faltam X dias").
+ * @param {string} userEmail - E-mail do destinatário.
+ * @param {{ title: string, link: string, deadline_date?: Date|string, publication_date: Date|string }} notice - Edital favoritado.
+ * @param {number} daysLeft - Dias restantes até o prazo (0 = dia do prazo).
+ * @returns {Promise<void>} Promise resolvida após o envio.
+ * @throws {Error} Se a API Resend retornar erro no envio.
+ */
 export async function sendNoticeReminder(userEmail, notice, daysLeft) {
     // Usa deadline_date quando existir; senão a publication_date (mesma regra do job).
     const rawDeadline = notice.deadline_date ?? notice.publication_date;
@@ -46,6 +59,14 @@ export async function sendNoticeReminder(userEmail, notice, daysLeft) {
     }
 }
 
+/**
+ * Envia o e-mail de recuperação de senha com o link de redefinição.
+ * O link aponta para /reset-password?token=... no frontend e é válido por 2 horas.
+ * @param {string} userEmail - E-mail do usuário que solicitou a redefinição.
+ * @param {string} token - Token de redefinição gerado para o usuário.
+ * @returns {Promise<void>} Promise resolvida após o envio.
+ * @throws {Error} Se a API Resend retornar erro no envio.
+ */
 export async function sendForgotPasswordEmail(userEmail, token) {
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}`;
 
@@ -67,6 +88,14 @@ export async function sendForgotPasswordEmail(userEmail, token) {
     }
 }
 
+/**
+ * Envia o e-mail de verificação de conta com o link de confirmação.
+ * O link aponta para /verify-email?token=... no frontend.
+ * @param {string} userEmail - E-mail recém-cadastrado a ser verificado.
+ * @param {string} token - Token de verificação de e-mail.
+ * @returns {Promise<void>} Promise resolvida após o envio.
+ * @throws {Error} Se a API Resend retornar erro no envio.
+ */
 export async function sendEmailVerificationEmail(userEmail, token) {
     const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-email?token=${token}`;
     const { error } = await resend.emails.send({
@@ -85,6 +114,13 @@ export async function sendEmailVerificationEmail(userEmail, token) {
         throw new Error(`Falha ao enviar e-mail de verificação: ${error.message}`);
     }
 }
+/**
+ * Cria um novo token de verificação de e-mail para o usuário.
+ * Marca como usados os tokens de EMAIL_VERIFICATION ainda ativos do usuário,
+ * gera um token aleatório com validade de 24 horas e persiste na tabela user_tokens.
+ * @param {number|string} userId - Id do usuário dono do token.
+ * @returns {Promise<object>} Registro do token criado (UserToken).
+ */
 export async function createEmailVerificationToken(userId) {
     const tokenRepo = AppDataSource.getRepository(UserTokenEntity);
 
@@ -108,6 +144,14 @@ export async function createEmailVerificationToken(userId) {
     return tokenRepo.save(newToken);
 }
 
+/**
+ * Envia o e-mail de confirmação da troca de endereço para o NOVO e-mail.
+ * O link aponta para /confirm-email-change?token=... no frontend (válido por 24 horas).
+ * @param {string} newEmail - Novo endereço de e-mail a ser confirmado.
+ * @param {string} token - Token de troca de e-mail.
+ * @returns {Promise<void>} Promise resolvida após o envio.
+ * @throws {Error} Se a API Resend retornar erro no envio.
+ */
 export async function sendEmailChangeEmail(newEmail, token) {
     const confirmUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/confirm-email-change?token=${token}`;
 
@@ -128,6 +172,13 @@ export async function sendEmailChangeEmail(newEmail, token) {
     }
 }
 
+/**
+ * Envia um aviso de segurança ao e-mail ANTIGO informando que houve
+ * solicitação de troca de endereço (sem link de confirmação).
+ * @param {string} oldEmail - Endereço de e-mail atual do usuário.
+ * @returns {Promise<void>} Promise resolvida após o envio.
+ * @throws {Error} Se a API Resend retornar erro no envio.
+ */
 export async function sendEmailChangeNoticeToOldEmail(oldEmail) {
     const { error } = await resend.emails.send({
         from: FROM_EMAIL,
@@ -145,6 +196,13 @@ export async function sendEmailChangeNoticeToOldEmail(oldEmail) {
     }
 }
 
+/**
+ * Cria um novo token de troca de e-mail para o usuário.
+ * Marca como usados os tokens de EMAIL_CHANGE ainda ativos do usuário,
+ * gera um token aleatório com validade de 24 horas e persiste na tabela user_tokens.
+ * @param {number|string} userId - Id do usuário dono do token.
+ * @returns {Promise<object>} Registro do token criado (UserToken).
+ */
 export async function createEmailChangeToken(userId) {
     const tokenRepo = AppDataSource.getRepository(UserTokenEntity);
 
@@ -168,6 +226,12 @@ export async function createEmailChangeToken(userId) {
     return tokenRepo.save(newToken);
 }
 
+/**
+ * Compara dois e-mails ignorando espaços nas pontas e diferenças de maiúsculas/minúsculas.
+ * @param {string} emailNovo - Novo e-mail informado.
+ * @param {string} emailAntigo - E-mail atual/armazenado.
+ * @returns {boolean} true se os dois e-mails forem equivalentes.
+ */
 export function emailIsEqual(emailNovo, emailAntigo) {
     return emailNovo.trim().toLowerCase() === emailAntigo.trim().toLowerCase();
 }

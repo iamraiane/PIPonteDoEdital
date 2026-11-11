@@ -1,4 +1,15 @@
 
+/**
+ * Define o schema TypeORM da tabela "subscriptions" (entidade Subscription) —
+ * assinaturas criadas no Mercado Pago.
+ * Colunas: id (int, PK auto), status (varchar, padrão "pending"),
+ * mercado_pago_subscription_id (varchar único), external_reference (varchar único),
+ * amount (decimal 10,2), currency (varchar 3, padrão "BRL"), start_date (datetime),
+ * end_date (datetime), created_at/updated_at (timestamps automáticos),
+ * user_id (int), plan_id (int).
+ * Relações: user (many-to-one com User, delete em cascata),
+ * plan (many-to-one com Plan, delete RESTRICT).
+ */
 import { EntitySchema } from "typeorm";
 
 export const SubscriptionEntity = new EntitySchema({

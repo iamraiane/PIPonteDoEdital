@@ -1,3 +1,10 @@
+/**
+ * Valida um CPF brasileiro usando o algoritmo oficial dos dígitos verificadores.
+ * Remove a máscara, descarta CPFs com menos de 11 dígitos ou com todos os
+ * dígitos repetidos e confere os dois dígitos verificadores.
+ * @param {string} cpf - CPF com ou sem máscara (pontos e hífen).
+ * @returns {boolean} true se o CPF for válido; false caso contrário.
+ */
 export function validateCPF(cpf) {
     
     cpf = cpf.replace(/[^\d]/g, '');

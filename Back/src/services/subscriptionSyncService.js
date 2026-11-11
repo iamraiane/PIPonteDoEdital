@@ -5,14 +5,24 @@ import { AppDataSource } from "../../data-source.js";
 import { SubscriptionEntity } from "../entities/Subscription.js";
 import { UserEntity } from "../entities/User.js";
 
+/** Cliente de configuração do Mercado Pago autenticado com o access token do ambiente. */
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
+/** Instância de PreApproval usada para consultar e atualizar assinaturas no Mercado Pago. */
 const preApproval = new PreApproval(client);
 
+/** Status de assinatura aceitos ao sincronizar com o Mercado Pago. */
 const ALLOWED_STATUSES = ["pending", "authorized", "paused", "cancelled"];
+/** Status de assinatura que devem ser sincronizados com o Mercado Pago. */
 const SYNCABLE_STATUSES = ["pending", "authorized", "paused"];
 
+/**
+ * Atualiza o papel (role) do usuário conforme suas assinaturas ativas.
+ * Promove para "premium" se houver assinatura "authorized" e rebaixa para "user" se não houver.
+ * @param {number|string} userId - Identificador do usuário.
+ * @returns {Promise<string|null>} Papel final do usuário ou null se não encontrado.
+ */
 export async function refreshPremiumRole(userId) {
   const subscriptionRepo = AppDataSource.getRepository(SubscriptionEntity);
   const userRepo = AppDataSource.getRepository(UserEntity);
@@ -37,6 +47,12 @@ export async function refreshPremiumRole(userId) {
 
   return user.role;
 }
+/**
+ * Sincroniza as assinaturas do usuário com o Mercado Pago.
+ * Consulta cada assinatura elegível, atualiza o status divergente e recalcula o papel do usuário.
+ * @param {number|string} userId - Identificador do usuário.
+ * @returns {Promise<{role: string|null, subscriptions: Array<object>}>} Papel resultante e detalhe de cada assinatura processada.
+ */
 export async function syncUserSubscriptions(userId) {
   const subscriptionRepo = AppDataSource.getRepository(SubscriptionEntity);
 
@@ -87,6 +103,14 @@ export async function syncUserSubscriptions(userId) {
   return { role, subscriptions: results };
 }
 
+/**
+ * Cancela a assinatura do usuário no Mercado Pago e localmente.
+ * Lança erro com código "NOT_FOUND" se não existir ou "NO_MP_ID" se não tiver vínculo com o Mercado Pago.
+ * @param {number|string} userId - Identificador do usuário dono da assinatura.
+ * @param {number|string} subscriptionId - Identificador da assinatura a cancelar.
+ * @returns {Promise<{id: number|string, status: string, role: string|null}>} Assinatura cancelada e papel resultante do usuário.
+ * @throws {Error} Erro com .code "NOT_FOUND" ou "NO_MP_ID" quando a validação falha.
+ */
 export async function cancelUserSubscription(userId, subscriptionId) {
   const subscriptionRepo = AppDataSource.getRepository(SubscriptionEntity);
 

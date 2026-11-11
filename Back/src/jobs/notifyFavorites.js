@@ -4,9 +4,20 @@ import { sendNoticeReminder } from "../utils/emailUtils.js";
 import { NOTIFICATION_OPTIONS } from "../utils/notificationOptions.js";
 import { NotificationEntity } from "../entities/Notification.js";
 
+/** Fuso horário usado nas datas do job e no agendamento do cron (São Paulo). */
 const TIMEZONE = "America/Sao_Paulo";
+/**
+ * Aguarda um tempo em milissegundos.
+ * @param {number} ms - Tempo de espera em milissegundos.
+ * @returns {Promise<void>} Promise que resolve após o tempo informado.
+ */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Calcula uma data relativa a hoje no fuso de São Paulo em formato "YYYY-MM-DD".
+ * @param {number} offsetDays - Dias a somar (ou subtrair, se negativo) à data atual.
+ * @returns {string} Data no formato "YYYY-MM-DD" no fuso America/Sao_Paulo.
+ */
 function dateInSaoPaulo(offsetDays) {
     const date = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
     return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(date);
@@ -14,6 +25,11 @@ function dateInSaoPaulo(offsetDays) {
 
 // Colunas "date" podem vir como string "YYYY-MM-DD" ou como objeto Date
 // (meia-noite no fuso local do servidor) — normaliza para "YYYY-MM-DD".
+/**
+ * Converte uma data em string "YYYY-MM-DD" de forma tolerante ao tipo recebido.
+ * @param {Date|string} value - Data como objeto Date ou string no banco.
+ * @returns {string} Data no formato "YYYY-MM-DD".
+ */
 function toDateString(value) {
     if (value instanceof Date) {
         const y = value.getFullYear();
@@ -24,12 +40,24 @@ function toDateString(value) {
     return String(value).slice(0, 10);
 }
 
+/**
+ * Monta a mensagem de lembrete de prazo do aviso.
+ * @param {string} title - Título do aviso.
+ * @param {number} daysLeft - Dias restantes até o prazo (0 = hoje, 1 = amanhã).
+ * @returns {string} Mensagem de lembrete em português.
+ */
 function buildMessage(title, daysLeft) {
     if (daysLeft === 0) return `O prazo de "${title}" termina hoje!`;
     if (daysLeft === 1) return `O prazo de "${title}" termina amanhã!`;
     return `O prazo de "${title}" termina em ${daysLeft} dias!`;
 }
 
+/**
+ * Executa a rotina de notificações de favoritos.
+ * Busca favoritos cujos avisos estão nas datas-alvo de aviso, cria a notificação in-app
+ * (se ainda não existir) e envia o e-mail de lembrete, respeitando as preferências do usuário.
+ * @returns {Promise<void>} Não retorna valor; registra erros individualmente no console.
+ */
 export async function runFavoriteNotifications() {
     const favoriteRepository = AppDataSource.getRepository("Favorite");
     const notificationRepository = AppDataSource.getRepository(NotificationEntity);
@@ -99,6 +127,10 @@ export async function runFavoriteNotifications() {
     }
 }
 
+/**
+ * Agenda o job de notificações de favoritos para todo dia às 08h (fuso de São Paulo).
+ * @returns {void} Não retorna valor.
+ */
 export function startFavoriteNotificationJob() {
     cron.schedule("0 8 * * *", runFavoriteNotifications, { timezone: TIMEZONE });
 }

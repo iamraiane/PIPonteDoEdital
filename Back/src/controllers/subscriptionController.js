@@ -7,7 +7,21 @@ import { SubscriptionEntity } from "../entities/Subscription.js";
 
 import { createMonthlySubscription } from "../services/mercadoPagoSubscriptionService.js";
 
+/**
+ * Controller responsável pela criação de assinaturas (checkout).
+ */
 export class SubscriptionController {
+  /**
+   * Cria uma nova assinatura mensal para o plano indicado.
+   * Exige usuário autenticado e ativo com e-mail cadastrado; valida o plano
+   * (existente, ativo e com valor válido), cria o registro com status
+   * "pending" e uma external_reference única, solicita a assinatura no
+   * Mercado Pago e retorna a URL de checkout. Se a criação no Mercado Pago
+   * falhar, marca a assinatura como "creation_error".
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   * @returns {Promise<void>} Responde com JSON e status HTTP apropriado.
+   */
   async create(req, res) {
     let subscription;
 

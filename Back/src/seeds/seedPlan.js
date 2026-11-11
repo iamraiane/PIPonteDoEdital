@@ -1,6 +1,7 @@
 import { AppDataSource } from "../../data-source.js";
 import { PlanEntity } from "../entities/Plan.js";
 
+/** Dados do plano "Premium" usado no seed (valor padrão de R$ 1,00 via SEED_PLAN_VALUE). */
 const PLAN = {
   name: "Premium",
   description: "Acesso Premium mensal",
@@ -8,6 +9,11 @@ const PLAN = {
   activate: true,
 };
 
+/**
+ * Executa o seed do plano: inicializa a conexão, cria o plano "Premium" se não existir
+ * e encerra a conexão com o banco.
+ * @returns {Promise<void>} Não retorna valor.
+ */
 async function run() {
   await AppDataSource.initialize();
 

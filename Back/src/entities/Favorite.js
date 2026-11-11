@@ -1,3 +1,11 @@
+/**
+ * Define o schema TypeORM da tabela "favorites" (entidade Favorite).
+ * Colunas: id (int, PK auto), created_at (timestamp automático),
+ * user_id (int), notice_id (int), notified (boolean, padrão false —
+ * indica se o lembrete de prazo já foi notificado).
+ * Relações: user (many-to-one com User via user_id),
+ * notice (many-to-one com Notice via notice_id).
+ */
 import { EntitySchema } from "typeorm";
 
 export const FavoriteEntity = new EntitySchema({

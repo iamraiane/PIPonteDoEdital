@@ -1,3 +1,10 @@
+/**
+ * Declara os endpoints do módulo de respostas a dúvidas
+ * (/doubts/:doubt_id/answers): criação, listagem, consulta, atualização e
+ * remoção.
+ * Autenticação: consultas são públicas; criação, atualização e remoção
+ * exigem authMiddleware + checkRole("admin") — apenas administradores respondem.
+ */
 import { DoubtAnswerController } from "../controllers/doubtAnswerController.js";
 import express from "express";
 import { authMiddleware } from "../utils/auth.js";

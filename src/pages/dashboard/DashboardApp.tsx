@@ -10,7 +10,7 @@ import AboutPage from './AboutPage'
 import ProfilePage, { type ProfileData } from './ProfilePage'
 import NotificationsPage from './NotificationsPage'
 import { FeedFilterProvider } from './FeedFilterContext'
-import { getUserById, updateUser } from '../../services/user'
+import { getUserById, updateUser, uploadAvatar } from '../../services/user'
 
 const ROUTE_MAP: Record<string, PageKey> = {
   feed: 'feed',
@@ -89,13 +89,24 @@ export default function DashboardApp({
           dataNascimento: data.data_nascimento || '',
           estado: data.state_code || '',
           interesses: data.preferences || [],
-          avatarUrl: null,
+          avatarUrl: data.avatar_url ?? null,
         }
         setProfile(loaded)
         setSavedProfile(loaded)
       })
       .catch(console.error)
   }, [userId])
+
+  async function handleAvatarUpload(file: File): Promise<string> {
+    if (!userId) throw new Error('Usuário não identificado')
+    const { avatar_url } = await uploadAvatar(userId, file)
+    const url = avatar_url ?? null
+    if (url) {
+      setProfile((prev) => ({ ...prev, avatarUrl: url }))
+      setSavedProfile((prev) => ({ ...prev, avatarUrl: url }))
+    }
+    return url ?? ''
+  }
 
   const pathSegment = location.pathname.split('/')[2] || 'feed'
   const page: PageKey = ROUTE_MAP[pathSegment] || 'feed'
@@ -166,7 +177,6 @@ export default function DashboardApp({
   }, [unsavedOpen])
 
   const firstName = profile.nome.trim().split(' ')[0] || userName
-  const preference = profile.interesses.length > 0 ? profile.interesses.join(' & ') : undefined
 
   return (
     <FeedFilterProvider>
@@ -174,7 +184,7 @@ export default function DashboardApp({
         active={page}
         onNavigate={handleNavigate}
         userName={firstName}
-        preference={preference}
+        interesses={profile.interesses}
         avatarUrl={profile.avatarUrl}
         hasPremium={hasPremium}
         userActive={userActive}
@@ -189,7 +199,7 @@ export default function DashboardApp({
           <Route path="plans" element={<PlansPage hasPremium={hasPremium} />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="about" element={<AboutPage />} />
-          <Route path="profile" element={<ProfilePage profile={profile} onChange={setProfile} onSave={handleSaveProfile} userActive={userActive} />} />
+          <Route path="profile" element={<ProfilePage profile={profile} onChange={setProfile} onSave={handleSaveProfile} onAvatarUpload={handleAvatarUpload} userActive={userActive} />} />
           <Route path="notifications" element={<NotificationsPage onNavigate={(p) => navigate(`/dashboard/${p}`)} />} />
         </Routes>
       </DashboardShell>

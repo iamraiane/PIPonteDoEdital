@@ -2,6 +2,7 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logoNome from '../assets/logo-nome.png'
 import logoPonte from '../assets/logo-ponte.png'
+import { DashIcon } from './dashboard/Icons'
 import { register, updateUser, getTokenPayload, resendVerificationEmail } from '../services/user'
 import { sanitizeInput, sanitizeName, sanitizeEmail, validateName, validateEmail, validatePassword, sanitizeCpf, formatCpf, validateCpf } from '../utils/validation'
 import './SignupFlow.css'
@@ -16,6 +17,17 @@ const INTERESSES = [
   'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
   'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
 ]
+
+const ICONE_POR_INTERESSE: Record<string, string> = {
+  Tecnologia: 'tech',
+  Educação: 'educacao',
+  Saúde: 'saude',
+  Infraestrutura: 'infraestrutura',
+  Cultura: 'cultura',
+  Serviços: 'servicos',
+  Consultoria: 'consultoria',
+  Engenharia: 'engenharia',
+}
 
 const FEATURES = [
   { icon: 'clipboard', text: 'Acompanhamento de prazos' },
@@ -842,6 +854,9 @@ function StepInterests({
               onClick={() => onToggle(item)}
               aria-pressed={active}
             >
+              <span className="pde-tag__icon">
+                <DashIcon name={ICONE_POR_INTERESSE[item] ?? 'tech'} />
+              </span>
               {item}
             </button>
           )

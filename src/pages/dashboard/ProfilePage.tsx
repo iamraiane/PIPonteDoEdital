@@ -8,7 +8,7 @@ import {
   disconnectGoogleCalendar,
   type GcalStatus,
 } from '../../services/googleCalendar'
-import { changeEmail } from '../../services/user'
+import { changeEmail, ApiError } from '../../services/user'
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
@@ -19,6 +19,17 @@ const INTERESSES = [
   'Tecnologia', 'Educação', 'Saúde', 'Infraestrutura',
   'Cultura', 'Serviços', 'Consultoria', 'Engenharia',
 ]
+
+const ICONE_POR_INTERESSE: Record<string, string> = {
+  Tecnologia: 'tech',
+  Educação: 'educacao',
+  Saúde: 'saude',
+  Infraestrutura: 'infraestrutura',
+  Cultura: 'cultura',
+  Serviços: 'servicos',
+  Consultoria: 'consultoria',
+  Engenharia: 'engenharia',
+}
 
 const ESTADOS = [
   { value: 'AC', label: 'Acre' },
@@ -74,11 +85,13 @@ export default function ProfilePage({
   profile,
   onChange,
   onSave,
+  onAvatarUpload,
   userActive = true,
 }: {
   profile: ProfileData
   onChange: (next: ProfileData) => void
   onSave: () => Promise<void>
+  onAvatarUpload: (file: File) => Promise<string>
   userActive?: boolean
 }) {
   const [saved, setSaved] = useState(false)
@@ -91,6 +104,9 @@ export default function ProfilePage({
   const [newEmail, setNewEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [gcalAvailable] = useState(isGoogleCalendarAvailable)
   const [gcalStatus, setGcalStatus] = useState<GcalStatus>(getGoogleCalendarStatus)
   const [gcalBusy, setGcalBusy] = useState(false)
@@ -131,11 +147,41 @@ export default function ProfilePage({
     )
   }
 
-  function handleFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  const AVATAR_TIPOS = ['image/jpeg', 'image/png', 'image/webp']
+  const AVATAR_TAMANHO_MAX = 2 * 1024 * 1024
+
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
+    const input = e.target
+    const file = input.files?.[0]
     if (!file) return
-    const url = URL.createObjectURL(file)
-    set('avatarUrl', url)
+    input.value = ''
+    setAvatarError(null)
+
+    if (!AVATAR_TIPOS.includes(file.type)) {
+      setAvatarError('Formato inválido. Use uma imagem JPG, PNG ou WEBP.')
+      return
+    }
+    if (file.size > AVATAR_TAMANHO_MAX) {
+      setAvatarError('A imagem deve ter no máximo 2 MB.')
+      return
+    }
+
+    const preview = URL.createObjectURL(file)
+    setAvatarPreview(preview)
+    setAvatarUploading(true)
+    try {
+      await onAvatarUpload(file)
+    } catch (err: unknown) {
+      setAvatarError(
+        err instanceof ApiError
+          ? err.message
+          : 'Não foi possível enviar a foto. Tente novamente.',
+      )
+    } finally {
+      URL.revokeObjectURL(preview)
+      setAvatarPreview(null)
+      setAvatarUploading(false)
+    }
   }
 
   async function handleSave() {
@@ -277,29 +323,38 @@ export default function ProfilePage({
         <div className="pdd-profile-photo-row">
           <button
             type="button"
-            className="pdd-profile-avatar"
+            className={`pdd-profile-avatar ${avatarUploading ? 'is-uploading' : ''}`}
             onClick={() => fileInputRef.current?.click()}
             aria-label="Alterar foto de perfil"
+            disabled={avatarUploading}
           >
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="" />
+            {avatarPreview ?? profile.avatarUrl ? (
+              <img src={(avatarPreview ?? profile.avatarUrl) as string} alt="" />
             ) : (
               <DashAvatar size={64} seed={2} />
             )}
             <span className="pdd-profile-avatar__badge">
-              <DashIcon name="camera" />
+              {avatarUploading ? (
+                <span className="pdd-profile-avatar__spinner" />
+              ) : (
+                <DashIcon name="camera" />
+              )}
             </span>
           </button>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png, image/jpeg"
+            accept="image/png, image/jpeg, image/webp"
             className="pdd-profile-photo-input"
             onChange={handleFile}
+            disabled={avatarUploading}
           />
           <div>
             <p className="pdd-profile-photo-label">Foto de Perfil</p>
-            <p className="pdd-profile-photo-hint">JPG ou PNG</p>
+            <p className="pdd-profile-photo-hint">
+              {avatarUploading ? 'Enviando foto…' : 'JPG, PNG ou WEBP · até 2 MB'}
+            </p>
+            {avatarError && <p className="pdd-profile-photo-error">{avatarError}</p>}
           </div>
         </div>
 
@@ -379,6 +434,9 @@ export default function ProfilePage({
                 onClick={() => toggleInteresse(item)}
                 aria-pressed={active}
               >
+                <span className="pdd-profile-tag__icon">
+                  <DashIcon name={ICONE_POR_INTERESSE[item] ?? 'tech'} />
+                </span>
                 {item}
               </button>
             )

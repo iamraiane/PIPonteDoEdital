@@ -31,7 +31,6 @@ from ConcursosNoBrasil.centro_oeste.mato_grosso import extrair_concursos_mato_gr
 from ConcursosNoBrasil.centro_oeste.mato_grosso_do_sul import extrair_concursos_mato_grosso_do_sul
 from ConcursosNoBrasil.centro_oeste.distrito_federal import extrair_concursos_distrito_federal
 
-from FDR import extrair_concursos_fdr
 
 
 def rodar_todos():
@@ -68,8 +67,6 @@ def rodar_todos():
     extrair_concursos_mato_grosso()
     extrair_concursos_mato_grosso_do_sul()
     extrair_concursos_distrito_federal()
-
-    extrair_concursos_fdr()
 
 if __name__ == "__main__":
     rodar_todos()

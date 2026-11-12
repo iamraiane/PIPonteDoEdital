@@ -20,7 +20,7 @@ export type NoticeApi = {
  * @param path - Caminho relativo à base da API.
  * @param init - Opções adicionais do fetch (método, corpo etc.).
  * @returns Corpo da resposta convertido para o tipo informado.
- * @throws {Error} Lançado quando a resposta indica falha.
+ * @throws {Error} Mensagem de erro do backend (message/detail) ou status da resposta.
  */
 async function authRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token')
@@ -32,7 +32,12 @@ async function authRequest<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { message?: string; detail?: string }
+      | null
+    throw new Error(body?.message ?? body?.detail ?? `Request failed: ${res.status}`)
+  }
   return res.json() as Promise<T>
 }
 
@@ -66,5 +71,16 @@ export async function updateNotice(id: number, data: Partial<NoticeApi>): Promis
 export async function deleteNotice(id: number): Promise<{ message: string }> {
   return authRequest<{ message: string }>(`notices/${id}`, {
     method: 'DELETE',
+  })
+}
+
+/**
+ * Dispara manualmente a raspagem de editais de outros sites (scraper).
+ * A raspagem roda em background no servidor; a resposta indica só o início.
+ * @returns Mensagem de confirmação de que o scraper foi iniciado.
+ */
+export async function runScraper(): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('notices/scraper/run', {
+    method: 'POST',
   })
 }

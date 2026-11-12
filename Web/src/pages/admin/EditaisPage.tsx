@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { DashIcon } from '../dashboard/Icons'
-import { getNotices, updateNotice, deleteNotice, type NoticeApi } from '../../services/notice'
+import { getNotices, updateNotice, deleteNotice, runScraper, type NoticeApi } from '../../services/notice'
 import { runNotificationJob } from '../../services/notification'
 import { getTokenPayload } from '../../services/user'
 import { Spinner } from '../../components/AppLoader'
@@ -83,6 +83,7 @@ export default function EditaisPage() {
   const [excluindo, setExcluindo] = useState<Edital | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [testandoNotif, setTestandoNotif] = useState(false)
+  const [rodandoScraper, setRodandoScraper] = useState(false)
   const [soSemTema, setSoSemTema] = useState(false)
 
   /** Termo de busca em minúsculas usado para filtrar a tabela. */
@@ -118,6 +119,35 @@ export default function EditaisPage() {
       avisar('Erro ao disparar notificações', 5000)
     } finally {
       setTestandoNotif(false)
+    }
+  }
+
+  /**
+   * Dispara manualmente a raspagem de editais (scraper) e agenda uma
+   * recarga da tabela 15s depois, quando os novos editais já devem ter
+   * sido inseridos. O scraper roda em background no servidor.
+   */
+  async function executarScraper() {
+    setRodandoScraper(true)
+    try {
+      await runScraper()
+      avisar('Scraper iniciado — os novos editais entram em alguns minutos', 5000)
+      setTimeout(async () => {
+        try {
+          const payload = getTokenPayload()
+          if (!payload?.id) return
+          const data = await getNotices(payload.id)
+          setEditais(data.map(mapNoticeToEdital))
+        } catch {
+          /* mantém a lista atual se a recarga falhar */
+        }
+      }, 15000)
+    } catch (err) {
+      console.error('Erro ao disparar scraper:', err)
+      const msg = err instanceof Error ? err.message : 'Erro ao disparar scraper'
+      avisar(msg, 5000)
+    } finally {
+      setRodandoScraper(false)
     }
   }
 
@@ -209,6 +239,15 @@ export default function EditaisPage() {
           title="Mostra só os editais que ainda não têm tema classificado"
         >
           Sem tema{soSemTema ? ' · on' : ''}
+        </button>
+        <button
+          type="button"
+          className="pda-btn pda-toolbar__btn"
+          onClick={executarScraper}
+          disabled={rodandoScraper}
+          title="Dispara manualmente a raspagem de editais de outros sites"
+        >
+          {rodandoScraper ? 'Executando...' : 'Rodar scraper'}
         </button>
         <button
           type="button"

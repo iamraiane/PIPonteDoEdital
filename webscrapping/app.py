@@ -32,6 +32,7 @@ from ConcursosNoBrasil.centro_oeste.mato_grosso_do_sul import extrair_concursos_
 from ConcursosNoBrasil.centro_oeste.distrito_federal import extrair_concursos_distrito_federal
 
 
+
 def rodar_todos():
 
     extrair_concursos_regiao_sul()

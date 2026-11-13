@@ -28,7 +28,9 @@ export class NoticeController {
     /**
      * Lista os editais ordenados por afinidade com as preferências do usuário
      * (recomendados primeiro), classificando temas pendentes antes de responder.
-     * Usuários com perfil "user" recebem no máximo 5 editais.
+     * Editais com prazo vencido (COALESCE de deadline_date/publication_date
+     * anterior a hoje, fuso America/Sao_Paulo) são excluídos; os sem data
+     * permanecem. Usuários com perfil "user" recebem no máximo 5 editais.
      * @param {import("express").Request} req
      * @param {import("express").Response} res
      * @returns {Promise<void>} Responde com JSON e status HTTP apropriado (200 com o array de editais, 404 se o usuário não existir ou 500 em erro interno).
@@ -40,9 +42,14 @@ export class NoticeController {
             const userRepo = AppDataSource.getRepository(UserEntity);
             const { userId } = req.params;
             const user = await userRepo.findOne({ where: { id: userId } });
-            const notices = await noticeRepo.find({
-                order: { id: "DESC" }
-                });
+            const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+            const notices = await noticeRepo.createQueryBuilder("notice")
+                .where(
+                    "COALESCE(notice.deadline_date, notice.publication_date) IS NULL OR COALESCE(notice.deadline_date, notice.publication_date) >= :today",
+                    { today }
+                )
+                .orderBy("notice.id", "DESC")
+                .getMany();
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });

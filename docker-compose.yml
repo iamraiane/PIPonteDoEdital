@@ -1,0 +1,47 @@
+services:
+  # back em nodejs
+  back:
+    build: ./back
+    container_name: projeto_back
+    #restart: always
+    restart: unless-stopped
+
+    environment:
+      - API_PORT=3000
+      - DB_TYPE=mysql
+      - DB_HOST=dbteste
+      - DB_USER=root
+      - DB_PASSWORD=teste
+      - DB_PORT=3306
+      - DB_DATABASE=projeto
+      - DB_RESET=false
+      - DB_SEED=false
+      - JWT_SECRET=senhasupersecreta134665649*dasa9a4sd9
+
+    ports:
+      - "13000:3000"  # API disponível em http://IP_DO_SERVIDOR:3600
+    volumes:
+      - ./uploads:/app/uploads  # Mapeia a raiz inteira (bancosangue/) permitindo edição em tempo real
+      - /app/node_modules
+    #depends_on:
+    #  - dbmaria
+    networks:
+      - rede_docker
+  # Servidor Web + API/Front PHP
+  web:
+    build: ./web
+    container_name: projeto_web
+    #restart: always
+    restart: unless-stopped
+    ports:
+      - "15000:80"  # Acesse o sistema via http://IP_DO_SERVIDOR:8080
+    volumes:
+      - ./web:/usr/share/nginx/html  # Mapeia a raiz inteira (bancosangue/) permitindo edição em tempo real
+    #depends_on:
+    #  - dbmaria
+    networks:
+      - rede_docker
+
+networks:
+  rede_docker:
+    external: true

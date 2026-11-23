@@ -116,7 +116,7 @@ export default function CalendarPage({
 
   return (
     <div className="pdd-calendar-page">
-      <h1 className="pdd-page-title">Calendario</h1>
+      <h1 className="pdd-page-title">Calendário</h1>
 
       <div className="pdd-calendar-card">
         {!hasPremium && (

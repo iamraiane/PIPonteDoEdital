@@ -525,10 +525,12 @@ export default function SignupFlow() {
     <div className={`pde-shell ${mounted ? 'pde-shell--mounted' : ''}`}>
       <aside className="pde-side">
         <div className="pde-side__inner">
-          <div className="pde-brand">
-            <img src={logoPonte} alt="" aria-hidden="true" className="pde-brand__icon" />
-            <img src={logoNome} alt="Ponte do Edital" className="pde-brand__logo" />
-          </div>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/commercial'); }} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+            <div className="pde-brand">
+              <img src={logoPonte} alt="" aria-hidden="true" className="pde-brand__icon" />
+              <img src={logoNome} alt="Ponte do Edital" className="pde-brand__logo" />
+            </div>
+          </a>
 
           <div className="pde-side__body">
             <p className="pde-eyebrow"><span className="pde-eyebrow__line" />Plataforma de editais</p>
